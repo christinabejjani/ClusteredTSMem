@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+
+<link rel="stylesheet" href="SCTfull.css" type="text/css" charset="utf-8">
+<script type="text/javascript" src="jquery-3.1.1.js"> </script>
+<script type="text/javascript" src="SCstimuli.js"></script>
+<script type="text/javascript" src="shuffle.js"></script>
+<script type="text/javascript">
+
+function gup(name,tmpURL) // function specifically for mTurk: can separate worker ID from assignment ID from HIT ID
+{
+	var regexS = "[\\?&]"+name+"=([^&#]*)";
+	var regex = new RegExp(regexS);
+	var results = regex.exec(tmpURL);
+	if (results == null)
+	{
+		return "";
+	}
+	
+	else
+	{
+		return results[1];
+	}
+}
+
+$(document).ready(function(){
+
+    //to be able to submit the data from the last trial, we need to get the assignment ID, etc. from the Main Menu file
+	document.getElementById('assignmentId').value = gup('assignmentId', opener.document.referrer);
+	document.getElementById('hitId').value = gup('hitId', opener.document.referrer);
+	document.getElementById('workerId').value = gup('workerId', opener.document.referrer);
+    document.getElementById('RTs').value = window.opener.document.getElementById('RTs').value;
+
+	var canvas = document.getElementById("myCanvas"); // myCanvas is to make sure that everything is presented in the middle of the screen
+	var ctx = canvas.getContext("2d"); // need context to draw on canvas
+
+	//disabling mouse clicks in the task
+	//from: http://stackoverflow.com/questions/8595909/how-to-completley-disable-any-mouse-click
+	var event1 = $(document).click(function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+	});
+	
+	//from: http://stackoverflow.com/questions/8595909/how-to-completley-disable-any-mouse-click
+    //disable right click
+    $(document).bind('contextmenu', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+    });
+	
+	//Stops backspace presses (8) and spaces (32);
+	//from: http://stackoverflow.com/questions/1495219/how-can-i-prevent-the-backspace-key-from-navigating-back
+  	$(function(){
+  	
+	var rx = /INPUT|SELECT|TEXTAREA/i;
+  	$(document).bind("keydown keypress", function(e){
+		if( e.which == 32 ||e.which == 8 )
+		{ // 8 == backspace
+			if(!rx.test(e.target.tagName) || e.target.disabled || e.target.readOnly )
+			{
+  				e.preventDefault();
+			}
+  		}
+  	});
+  	});	
+    
+	//////////////////////////////////////////////////////////////FILLER INSTRUCTIONS //////////////////////////////////////////////////////////////
+	
+	var slideNum=0;
+	var maxNum=10;
+	
+    function hideFillerInstruct()
+	{
+		$("#startFillertask").hide();
+		$("#FillerStartInstruct").hide();
+		$("#NextButton").hide();
+        $("#RedoInstructOne").hide();
+		$("#Instructions").hide();
+		$("#Instructions1").hide();		
+	    $("#Instructions2").hide();
+		$("#Instructions3").hide();
+		$("#Instructions4").hide();
+		$("#Instructions5").hide();
+		$("#Instructions6").hide();
+	}
+	
+	hideFillerInstruct();
+    
+    $("#ReadInstructions").show();
+	$("#InstructionsHeader").show();
+	$("#FillerStartInstruct").show();
+
+    $("#startFillertask").on('click', function(){
+    	hideFillerInstruct();
+		$("#ReadInstructions").hide();
+		$("#InstructionsHeader").hide();
+		$("#startButton").show();
+		$("#info").show();
+	});
+
+	$("#NextButton").on('click', function(){
+	    slideNum=slideNum+1;
+		moveShow(slideNum);
+	});
+
+	$("#FillerStartInstruct").on('click', function(){
+		$("#FillerStartInstruct").hide()
+		$("#NextButton").show()
+	    moveShow(slideNum);
+	});
+    
+    $("#RedoInstructOne").on('click',function(){
+		hideFillerInstruct();
+		$("#InstructionsHeader").show();
+		$("#ReadInstructions").show();
+		slideNum=slideNum-maxNum;
+		moveShow(slideNum);
+	});
+
+	function moveShow(slideNum)
+	{
+		if (slideNum==0) {
+            $("#Instructions").text('In this part of the experiment, you will still be presented with images of objects; however, rather than having to learn via trial and error which key to press, you will now be told which keys to press according to particular task rules.');
+            $("#Instructions").show()
+		} 
+		else if (slideNum==1) 
+		{
+            $("#Instructions1").html('On each trial, you will categorize whether each object is <b>natural</b> or <b>man-made</b> or <b>smaller</b> or <b>larger</b> than a <u>shoebox</u> based on the color of the border that surrounds the object image. Examples of the four object image categories will be shown after you click the button.');
+			$("#Instructions1").show(); 
+		} 
+		else if (slideNum==2)
+		{
+			$("#FaceLabel").text("ML - Man-made, Larger than a Shoebox");
+			$("#FaceLabel").show();
+			$("#NLW").show();
+		}
+		else if (slideNum==3)
+		{
+			$("#NLW").hide();
+			$("#FaceLabel").text("MS - Man-made, Smaller than a Shoebox");
+			$("#FaceLabel").show();
+			$("#NSW").show();
+		}
+		else if (slideNum==4)
+		{
+			$("#NSW").hide();
+			$("#FaceLabel").text("NL - Natural, Larger than a Shoebox");
+			$("#FaceLabel").show();
+			$("#LLW").show();
+		}
+		else if (slideNum==5)
+		{
+			$("#LLW").hide();
+			$("#FaceLabel").text("NS - Natural, Smaller than a Shoebox");
+			$("#FaceLabel").show();
+			$("#LSW").show();
+		}
+		else if (slideNum==6)
+		{
+			$("#LSW").hide();
+			$("#FaceLabel").hide();
+			$("#Instructions2").html('If the border is <text style="color:red">RED, <text style="color:black">press d/D if the object is NATURAL and j/J if the object is MAN-MADE. If the border is <text style="color:blue">BLUE, <text style="color:black">press d/D if the object is SMALLER and j/J if the object is LARGER than a shoebox.');
+			$("#Instructions2").show();
+		} 
+		else if (slideNum==7) 
+		{
+            $("#Instructions3").text('Please enlarge this window to encompass the entire computer screen and sit at a comfortable distance from the screen.');   
+			$("#Instructions3").show();
+		} 
+		else if (slideNum==8) 
+		{
+            $("#Instructions4").text('Respond to each object as quickly as possible while still being accurate. You will have until the object disappears to make your response. Always press the d/D key with your LEFT index finger and the j/J key with your RIGHT index finger.');
+			$("#Instructions4").show();	   
+		} 
+		else if (slideNum==9) 
+		{
+            $("#Instructions5").text('You will first go through a practice round to get acquainted with the task. Please stay focused during the experiment and try to get an accuracy above 80%.');
+            $("#Instructions5").show();
+		}
+		else if (slideNum==10) 
+		{
+            $("#Instructions6").text('This task will take 4 minutes. Press the button to begin the practice.');
+			$("#Instructions6").show();
+		}
+	
+		if (slideNum==0) 
+		{
+            $("#NextButton").show(); 
+		} 
+		else if (slideNum < maxNum) 
+		{
+            $("#NextButton").show(); 
+		} 
+		else 
+		{
+            $("#NextButton").hide();
+            $("#startFillertask").show();
+            $("#RedoInstructOne").show();
+		} 
+	
+	}
+	
+	//////////////////////////////////////////////////////////////FILLER FINAL //////////////////////////////////////////////////////////////
+	
+	function hideFiller()
+	{
+		$("#RTs").hide();
+		$("#indicator").hide();		
+		$("#submitButton").hide();
+		$("#endBlockButton").hide();
+        $("#endExpButton").hide();
+		$("#resize").hide();
+		$("#mturk_form").hide();
+		$("#info").hide();		
+        $("#startButton").hide();
+        $("#startMain").hide();
+	}
+	
+	hideFiller();
+	
+    var runNumber = 1;
+	var runCounter = -1; // i start at -1 because I add to the counter as soon as it is initialized.
+	var trialCounter = -1; // same reason
+	var trialNumber = 119; // 120 trials per block b/c added to *after* trial starts
+	var keyPressed = 0; // this is an easy way of seeing when someone actually pressed a button vs. not
+	var accuracy = 0; // default
+	var respTime = []; // default
+	var accsum = []; // accuracy feedback that they'll get at the end of the block
+	var PressCorrect = []; // this is how i mark correct answers
+    var PressCorrect2 = [];
+    var ACCCount = 0; //this will be a counter for all the accurate trials
+	var PR_ACCCount = 0;
+    var Category = 0;
+    var oldLS_Filler = ["https://people.duke.edu/~cb383/HLset/stim/LSW/1.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/2.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/4.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/5.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/6.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/7.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/8.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/9.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/10.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/11.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/12.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/13.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/14.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/16.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/17.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/18.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/20.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/21.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/22.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/23.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/24.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/25.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/26.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/27.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/28.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/29.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/30.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/31.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/32.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/33.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/35.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/36.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/37.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/38.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/39.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/40.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/41.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/42.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/43.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/44.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/45.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/46.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/47.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/48.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/49.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/50.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/51.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/52.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/53.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/54.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/55.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/56.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/57.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/58.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/59.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/60.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/61.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/62.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/63.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/64.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/65.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/66.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/30.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/32.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/33.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/34.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/35.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/36.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/37.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/38.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/39.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/40.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/41.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/42.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/44.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/45.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/46.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/47.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/48.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/50.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/52.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/53.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/55.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/56.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/57.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/58.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/31.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/43.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/49.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/51.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/54.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/3.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/15.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/19.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/34.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/67.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/68.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/69.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/70.jpg"];
+    var oldLL_Filler = ["https://people.duke.edu/~cb383/HLset/stim/LLW/1.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/2.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/3.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/4.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/5.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/6.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/7.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/8.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/9.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/10.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/11.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/12.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/13.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/14.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/15.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/16.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/17.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/18.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/19.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/20.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/21.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/22.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/23.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/24.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/25.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/26.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/27.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/28.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/29.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/30.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/31.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/32.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/33.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/34.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/35.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/36.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/37.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/38.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/39.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/40.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/41.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/42.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/43.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/44.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/45.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/46.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/47.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/48.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/49.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/50.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/51.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/52.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/53.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/54.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/55.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/56.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/57.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/58.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/59.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/60.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/61.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/62.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/63.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/64.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/65.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/66.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/1.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/2.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/3.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/4.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/5.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/6.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/7.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/8.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/10.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/11.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/12.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/13.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/14.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/15.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/16.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/17.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/18.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/19.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/20.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/21.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/22.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/23.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/24.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/25.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/26.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/27.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/28.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/9.jpg"];
+	var oldNS_Filler = ["https://people.duke.edu/~cb383/HLset/stim/NSW/1.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/2.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/3.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/4.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/5.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/6.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/7.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/8.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/9.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/10.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/11.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/12.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/13.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/14.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/15.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/16.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/17.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/18.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/19.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/20.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/22.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/23.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/24.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/25.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/26.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/27.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/28.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/29.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/30.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/31.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/32.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/33.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/34.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/35.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/36.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/37.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/38.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/39.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/40.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/41.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/42.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/44.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/45.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/47.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/48.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/49.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/50.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/51.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/52.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/53.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/54.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/55.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/56.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/57.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/59.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/60.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/61.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/62.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/63.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/64.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/65.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/66.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/87.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/88.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/89.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/90.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/91.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/93.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/94.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/95.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/96.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/97.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/98.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/99.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/100.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/101.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/102.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/103.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/104.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/105.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/106.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/107.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/108.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/109.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/110.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/111.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/112.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/113.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/92.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/21.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/43.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/46.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/58.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/67.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/68.jpg"];
+	var oldNL_Filler = ["https://people.duke.edu/~cb383/HLset/stim/NLW/1.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/2.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/3.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/4.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/5.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/6.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/7.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/8.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/9.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/10.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/11.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/12.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/13.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/14.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/15.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/16.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/17.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/18.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/19.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/20.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/21.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/22.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/23.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/24.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/25.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/26.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/27.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/28.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/29.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/30.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/31.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/32.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/33.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/34.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/35.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/36.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/37.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/38.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/39.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/40.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/41.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/42.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/43.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/44.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/45.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/46.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/47.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/48.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/49.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/50.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/51.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/52.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/53.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/54.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/55.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/56.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/57.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/58.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/59.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/60.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/61.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/62.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/63.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/64.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/65.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/66.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/59.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/60.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/61.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/62.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/63.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/64.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/65.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/66.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/67.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/68.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/69.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/70.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/71.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/72.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/73.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/74.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/75.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/76.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/77.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/78.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/79.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/80.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/81.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/82.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/83.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/84.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/85.jpg", "https://people.duke.edu/~cb383/HLset/stim/M/86.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/67.jpg"];	
+	var imgCount = 0; //img counter for when I'm loading the images
+	var oldLS_Fillerimgs = new Array(30);
+    var oldLL_Fillerimgs = new Array(30);
+    var oldNS_Fillerimgs = new Array(30);
+    var oldNL_Fillerimgs = new Array(30);
+    var oldLScounter = 0;
+    var oldLLcounter = 0;
+    var oldNScounter = 0;
+    var oldNLcounter = 0;   
+	var MatrixCounter = -1; // I used this as another counter throughout the experiment (since trials are by block & trialCounter is reset)
+    var feedbackType = 0; // will tell you whether or not they've responded within the time frame
+    var ProcedurePresented = [1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,1,2,1,2,1,2,1,2,1,2];
+    
+	var data=[['']]; //data logfile - resets here so it's empty & not full of the practice logs
+	var runStart; //when a run starts
+	var logCounter = 0; //the counter for each data entry
+	var Responset; // response onset
+    var StimOnset;
+	var d2; // marker for when image is presented
+	var d1; // marker for runstart
+	var d4; // marker for when a key is presed re: #
+	var d5 = new Date();
+	var ScreenPulled; // when the DOM loads
+	ScreenPulled = d5.getTime();
+	var StimTime; // this is the time the stimulus was presented; so RT is responset - stimttime;
+	
+    window.hasResponse = -1; // this is to ensure that data is not currently logged
+		
+	$("#startButton").click(function(){
+		$("#startButton").hide();
+		$("#info").hide();
+		runExp(); // will run my experiment function
+	});
+    
+    $("#startMain").click(function(){
+		$("#startMain").hide();
+		$("#indicator").hide();
+		setTimeout(drawCross,1000); //after practice + sub hits button to go on, draws fixation cross after 1 sec
+	});
+	
+	$("#endBlockButton").click(function(){ // when a block is finished, this button would run another block
+		$("#endBlockButton").hide();
+		$("#indicator").hide();
+		runBlock();
+	});
+    
+    $("#endExpButton").click(function(){ // when the experiment is finished, this will update the main menu file (which has all the HTML files gathered) & close the window
+        opener.updateMainMenu(3);
+        JavaScript:window.close();
+	});
+	
+	$("#resize").click(function(){ // to make sure that people are paying attention and don't have more than one task going, this fxn won't let a run start without a large enough window size
+		$("#resize").hide(); // once they click the button, the task will start only if the proper screen portions are in place
+		$("#indicator").hide();
+		$("#endBlockButton").hide();
+		checkSize();
+	});
+    
+    loadImage(); //
+    
+    function loadImage() // this is my load image function; have to load before I start drawing b/c can take time
+	{ 
+		if (imgCount < 30) 
+		{
+			oldLL_Fillerimgs[imgCount] = new Image();
+			oldLL_Fillerimgs[imgCount].src = oldLL_Filler[imgCount];
+			oldLL_Fillerimgs[imgCount].onload = loadImage;
+            
+            oldLS_Fillerimgs[imgCount] = new Image();
+			oldLS_Fillerimgs[imgCount].src = oldLS_Filler[imgCount];
+			oldLS_Fillerimgs[imgCount].onload = loadImage;
+            
+            oldNL_Fillerimgs[imgCount] = new Image();
+			oldNL_Fillerimgs[imgCount].src = oldNL_Filler[imgCount];
+			oldNL_Fillerimgs[imgCount].onload = loadImage;
+            
+            oldNS_Fillerimgs[imgCount] = new Image();
+			oldNS_Fillerimgs[imgCount].src = oldNS_Filler[imgCount];
+			oldNS_Fillerimgs[imgCount].onload = loadImage;
+			
+			imgCount++;
+		}
+	}
+    
+    //simple "runExp" to separate out the WHOLE experiment from individual blocks
+	function runExp()
+	{
+		logCounter = 0;
+        runSetup();
+        runBlock();
+	}
+    
+    function runSetup()
+    {
+        
+        for (i=29; i < 120; i++) // establishes rest of procedure matrix based on switches/repeats (50:50 here)
+        {
+            if (TrialType[i] == 1) //switch trial
+            {
+				if (ProcedurePresented[i-1] == 1) //if one task
+                {
+                    ProcedurePresented[i] = 2; //flip to the other
+                }
+                else if (ProcedurePresented[i-1] = 2)
+                {
+                    ProcedurePresented[i] = 1;
+                }
+            }
+            else if (TrialType[i] == 2)
+            {
+                if (ProcedurePresented[i-1] == 1)
+                {
+                    ProcedurePresented[i] = 1;
+                }
+                else if (ProcedurePresented[i-1] = 2)
+                {
+                    ProcedurePresented[i] = 2;
+                }
+            }
+        }
+        console.log(ProcedurePresented);
+    }
+      
+    function runBlock()
+	{
+		runCounter++;
+		if (runCounter < runNumber)
+		{
+			$("#redo").hide(); // hiding various HTML objects
+            $("#indicator").hide();
+			trialCounter = -1; // resets the trial counter in case there are multiple blocks
+            window.hasResponse = -1; // make sure no buttons have been recorded when the task hasn't even started
+			ctx.clearRect(0,0,canvas.width, canvas.height); // this is essentially like clearing the screen in matlab
+			if (runCounter > 0)
+            {
+                ACCCount = 0; // reset acc count before next block
+            }
+            checkSize();
+		}
+		else
+		{
+            $("#Filler").val(data.join(";"));
+            $("#Filler", opener.window.document).val(data.join(";"));
+            $("#endExpButton").show();	
+		}
+	}
+    
+    // adapted from: http://stackoverflow.com/questions/3437786/get-the-size-of-the-screen-current-web-page-and-browser-window
+	function checkSize() 
+	{
+		var w = window.innerWidth;
+		var h = window.innerHeight;
+		if (w < 800 || h < 600) // 800 by 600 is the lowest resolution on my laptop; seems like a good "minimum" (basically need 500 x 500 at least)
+        {
+			$("#indicator").text('Your browser window is too small to display the images properly. Please increase the window size or your screen resolution.');
+  			$("#indicator").show();
+			$("#resize").show();
+		} 
+		else // if their screen is the proper size...
+		{
+			$("#resize").hide();
+			countDown(3); // start the countdown for the experiment
+		}	
+	}
+    
+    function countDown(time) // the countdown is meant to "prepare" the subjects that the experiment is beginning
+	{
+		if (time > 0)
+		{
+			window.hasResponse = -1;
+			ctx.textBaseline="middle";
+			ctx.textAlign="center";
+			ctx.fillStyle="black";
+			ctx.font="200px Arial";
+			ctx.clearRect(0,0, canvas.width, canvas.height);
+			ctx.fillText("" + time, canvas.width / 2, canvas.height / 2);
+			setTimeout(function(){countDown(time - 1)},1000);
+		}
+		else
+		{
+			d1 = new Date();
+			runStart = d1.getTime() - ScreenPulled;
+            showITI(); // once the countdown is finished, it goes to the ITI; this way, subs are less likely to mess up the first trial, i.e. if something was suddenly presented right after a 3-2-1 counter
+		}
+	}
+    
+    function showITI()
+	{
+		ctx.clearRect(0,0,canvas.width, canvas.height); // no matter what, clear the screen
+		window.hasResponse = -1;
+    
+        if (trialCounter < trialNumber)
+        {
+			if (trialCounter == 27)
+			{
+				var accsum = Math.round((PR_ACCCount/28) * 100);
+                $("#indicator").html("Your accuracy on the practice was " + accsum + " percent. <br /><br />Remember: <br />If the border is <b>RED</b>, press d/D if the object is NATURAL and j/J if the object is MAN-MADE. <br /><br />If the border is <b>BLUE</b>, press d/D if the object is SMALLER and j/J if the object is LARGER than a shoebox. <br /><br />Click the button to continue with the main task.");
+				$("#indicator").show();
+				$("#startMain").show();
+			}
+			else
+			{
+				$("#indicator").hide();
+				keyPressed = 0;
+				setTimeout(drawCross,800);
+			}
+        }
+        else // then you're done with the block!
+        {   
+            $("#indicator").hide();
+            var accsum = Math.round((ACCCount/92) * 100); // calculates accuracy percentage (#correct trials/total)*100 for each block
+            $("#indicator").text("Your accuracy on this task was " + accsum + " percent.");
+            $("#indicator").show();
+            $("#endBlockButton").show();
+        }
+	}
+    
+    function drawCross() // this is my fixation function
+	{
+		window.hasResponse = -1;
+		ctx.font="100px Arial";
+        ctx.textBaseline="middle";
+		ctx.textAlign="center";        
+		ctx.fillStyle="black";
+		ctx.fillText("+", (canvas.width/2), (canvas.height/2));
+		setTimeout(drawObject,200);
+	}
+    
+    function drawObject()
+	{
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        window.hasResponse = 0;
+		MatrixCounter++;
+		trialCounter++;
+        d2 = new Date();
+        StimOnset = d2.getTime() - runStart;
+        
+        if (ObjectStimMatrix[MatrixCounter] == 1)
+		{
+            if (ProcedurePresented[MatrixCounter] == 1) //1 means animacy
+            {
+                ctx.fillStyle="red";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle="white";
+                ctx.fillRect(20, 20, 510, 460);
+                PressCorrect = 'd';
+                PressCorrect2 = 'D';
+                ResponseMatrix = 1;
+            }
+            else if (ProcedurePresented[MatrixCounter] == 2) //2 means size
+            {
+                ctx.fillStyle="blue";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle="white";
+                ctx.fillRect(20, 20, 510, 460);
+                //ctx.fillRect(6, 78, 516, 346);
+                PressCorrect = 'j';
+                PressCorrect2 = 'J';
+                ResponseMatrix = 2;
+            }
+            ctx.drawImage(oldLL_Fillerimgs[oldLLcounter], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+            Category = 'NL';
+            oldLLcounter++;
+		}
+		else if (ObjectStimMatrix[MatrixCounter] == 2)
+		{
+            if (ProcedurePresented[MatrixCounter] == 1) //OFN => NLP
+            {
+                ctx.fillStyle="red";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle="white";
+                ctx.fillRect(20, 20, 510, 460);
+                PressCorrect = 'd';
+                PressCorrect2 = 'D';
+                ResponseMatrix = 1;
+            }
+            else if (ProcedurePresented[MatrixCounter] == 2) //OFN => NLP
+            {
+                ctx.fillStyle="blue";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle="white";
+                ctx.fillRect(20, 20, 510, 460);
+                PressCorrect = 'd';
+                PressCorrect2 = 'D';
+                ResponseMatrix = 1;
+            }
+            ctx.drawImage(oldLS_Fillerimgs[oldLScounter], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+            Category = 'NS';
+            oldLScounter++;
+		}
+		else if (ObjectStimMatrix[MatrixCounter] == 3)
+		{
+            if (ProcedurePresented[MatrixCounter] == 1) //OFN => NLP
+            {
+                ctx.fillStyle="red";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle="white";
+                ctx.fillRect(20, 20, 510, 460);
+                PressCorrect = 'j';
+                PressCorrect2 = 'J';
+                ResponseMatrix = 2;
+            }
+            else if (ProcedurePresented[MatrixCounter] == 2) //OFN => NLP
+            {
+                ctx.fillStyle="blue";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle="white";
+                ctx.fillRect(20, 20, 510, 460);
+                PressCorrect = 'j';
+                PressCorrect2 = 'J';
+                ResponseMatrix = 2;
+            }
+            ctx.drawImage(oldNL_Fillerimgs[oldNLcounter], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+			Category = 'ML';
+            oldNLcounter++;
+		}
+		else if (ObjectStimMatrix[MatrixCounter] == 4)
+		{
+            if (ProcedurePresented[MatrixCounter] == 1) //OFN => NLP
+            {
+                ctx.fillStyle="red";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle="white";
+                ctx.fillRect(20, 20, 510, 460);
+                PressCorrect = 'j';
+                PressCorrect2 = 'J';
+                ResponseMatrix = 2;
+            }
+            else if (ProcedurePresented[MatrixCounter] == 2) //OFN => NLP
+            {
+                ctx.fillStyle="blue";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle="white";
+                ctx.fillRect(20, 20, 510, 460);
+                PressCorrect = 'd';
+                PressCorrect2 = 'D';
+                ResponseMatrix = 1;
+            }
+            ctx.drawImage(oldNS_Fillerimgs[oldNScounter],((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+            Category = 'MS';
+            oldNScounter++;
+		}
+
+		setTimeout(checkResponse, 1000);  
+	}
+    
+    function checkResponse()
+	{
+		if (window.hasResponse == 0 || feedbackType == 1) //check if a response has been made
+		{
+			// if it hasn't been made, it will get logged as ITIResp
+			accuracy = 0;
+			data[logCounter++] = ["FillerRespITI:", logCounter, trialCounter, MatrixCounter, runCounter, ProcedurePresented[MatrixCounter], ObjectStimMatrix[MatrixCounter], TrialType[MatrixCounter], PressCorrect, ResponseMatrix, keyPressed, accuracy, respTime, feedbackType, PR_ACCCount, ACCCount];
+			setTimeout(showFeedback)
+			window.hasResponse = -1; // set the response to not check for responses again
+		}
+		else // if they have already responded, go to the ITI
+		{
+			setTimeout(showITI)
+		}
+	}
+    
+    function showFeedback() // fb time-out fxn
+	{
+		window.hasResponse = -1;
+		ctx.clearRect(0,0, canvas.width, canvas.height);
+		ctx.textBaseline="middle";
+		ctx.textAlign="center";
+		ctx.fillStyle="black";
+		ctx.font="75px Arial"; 
+		ctx.fillText("Respond faster",(canvas.width / 2), (canvas.height / 2), 500); // 500 is to state limit of the canvas width
+		setTimeout(showITI, 1000);
+	}
+	
+	$("body").keypress(function(event) // in order to have fixed length trials, NO FUNCTIONS can be run inside the keypress function; also, clearTimeout CANNOT be used as that will erase the timeline linking the fxns
+	{        
+		if (window.hasResponse == 0) // this ensures that it's getting the key that was pressed AFTER the stimulus was presented
+		{
+			keyPressed = String.fromCharCode(event.which); // identifies which key was pressed
+			if (keyPressed == "d" || keyPressed == "j" || keyPressed == "D" || keyPressed == "J")
+            {
+                window.hasResponse = -1; // this makes certain that keypresses aren't logged after that
+                d4 = new Date();
+				Responset = d4.getTime() - runStart;
+				respTime = Responset - StimOnset;
+				
+				if (keyPressed == PressCorrect || keyPressed == PressCorrect2) // compares keypress to the correct press for a trial
+				{
+					if (respTime < 1000)
+					{
+						accuracy = 1;
+						feedbackType = 0;
+						if (trialCounter < 28)
+						{
+							PR_ACCCount++;
+						}
+						else
+						{
+							ACCCount++;
+						}
+                        data[logCounter++] = ["FillerResp:", logCounter, trialCounter, MatrixCounter, runCounter, ProcedurePresented[MatrixCounter], ObjectStimMatrix[MatrixCounter], TrialType[MatrixCounter], PressCorrect, ResponseMatrix, keyPressed, accuracy, respTime, feedbackType, PR_ACCCount, ACCCount];
+					}
+					else
+					{
+						feedbackType = 1;
+						accuracy = 0;
+					}
+				}
+				else // if they didn't press the right key, they might not have responded OR responded incorrectly
+				{
+					if (respTime < 1000)
+					{
+						accuracy = 0;
+						feedbackType = 0;
+                        data[logCounter++] = ["FillerResp:", logCounter, trialCounter, MatrixCounter, runCounter, ProcedurePresented[MatrixCounter], ObjectStimMatrix[MatrixCounter], TrialType[MatrixCounter], PressCorrect, ResponseMatrix, keyPressed, accuracy, respTime, feedbackType, PR_ACCCount, ACCCount];
+					}
+					else
+					{
+						feedbackType = 1;
+						accuracy = 0;
+					}
+                }                
+			}
+        }
+    });
+		
+});	
+
+</script>
+</head>
+
+<body>
+<!--the HTML for the instructions-->
+<h2 id="InstructionsHeader" style="font-family:arial;font-size:30px">Instructions:</h2>
+<p id="ReadInstructions" style="font-family:arial;font-weight:bold; font-size:24px">Please read these instructions carefully before you begin the experiment.</p>
+<p id="Instructions" style="font-family:arial;color:black;font-size:22px;text-align: left"></p>
+<p id="Instructions1" style="font-family:arial;color:black;font-size:22px;text-align: left"></p>
+<p id="FaceLabel" style="font-family:arial;color:black;font-size:22px;position:relative"></p>
+<p id="Instructions2" style="font-family:arial;color:black;font-size:22px;text-align: left"></p>
+<p id="Instructions3" style="font-family:arial;color:black;font-size:22px;text-align: left"></p>
+<p id="Instructions4" style="font-family:arial;color:black;font-size:22px;text-align: left"></p>
+<p id="Instructions5" style="font-family:arial;color:black;font-size:22px;text-align: left"></p>
+<p id="Instructions6" style="font-family:arial;color:black;font-size:22px;text-align: left"></p>
+<img id="LSW" src="https://people.duke.edu/~cb383/HLset/stim/LSW/instructions.jpg" style="display:none; position:relative" height="300" width="500">
+<img id="LLW" src="https://people.duke.edu/~cb383/HLset/stim/LLW/instructions.jpg" style="display:none" height="300" width="500">
+<img id="NSW" src="https://people.duke.edu/~cb383/HLset/stim/NSW/instructions.jpg" style="display:none" height="300" width="500">
+<img id="NLW" src="https://people.duke.edu/~cb383/HLset/stim/NLW/instructions.jpg" style="display:none" height="300" width="500">
+<p><button id="NextButton" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Next</button></p>
+<button id="FillerStartInstruct" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Next</button>
+<button id="startFillertask" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Click to exit instructions and start task.</button>
+<button id="RedoInstructOne" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Read through the instructions again.</button>
+
+	<table>
+		<tr>
+			<td>
+				<p id="indicator" style="font-family: Arial; color: black; font-size: 40px; text-align:center; align: center; float: center"></p>
+				<p id="info" style="font-family: arial; font-size: 20px; vertical-align: middle; text-align:center; align: center; float: center">Once you're ready to start, press the button below.</p>
+				<p><button id="endBlockButton" style="font-family: Arial; color: black; text-align:center; align: center; float: center">You may take a short break. Click this button when you're ready to continue the task.</button></p>
+				<p><button id="endExpButton" style="font-family: Arial; color: black; text-align:center; align: center; float: center">This task has ended. Click this button when you're ready to continue onto the next part.</button></p>
+				<p><button id="resize" style="font-family: Arial; color: black; text-align:center; align: center; float: center">Try resizing again.</button></p>
+				<p> <button id ="startMain" style="font-family: Arial; color: black; text-align:center; align: center; float: center">Start the Main Task.</button></p>
+                <p> <button id ="startButton" style="font-family: Arial; color: black; text-align:center; align: center; float: center">Start the Practice.</button></p>
+				
+				<form id="mturk_form" method="POST" action="http://152.3.33.45/AMTSubmit/dataHandler.php">
+				
+					<input type="hidden" id="ExpName" name="ExpName" value="HLCM_F_NSWI">
+					<input type="hidden" id="assignmentId" name="assignmentId" value="">
+					<input type="hidden" id="workerId" name="workerId" value="">
+					<input type="hidden" id="hitId" name="hitId" value="">
+					<input type="hidden" id="RTs", name="RTs", value="">
+                    <input type="hidden" id="Filler", name="Filler", value="">
+					<input id="submitButton" style="font-family: Arial; color: black; font-size: 36px; text-align:center; align: center" type="submit" name="Finish" value="Submit">
+					
+				</form>
+				
+				<canvas id="myCanvas" width="550" height="500" style="user-select: none; -webkit-user-select:none; -moz-user-select:none"></canvas>
+			</td>
+		</tr>
+	</table>			
+</body>
+</html>
