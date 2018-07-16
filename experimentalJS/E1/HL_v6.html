@@ -1,0 +1,2231 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+
+<link rel="stylesheet" href="HLtask.css" type="text/css" charset="utf-8">
+<script type="text/javascript" src="jquery-3.1.1.js"> </script>
+<script type="text/javascript" src="math.js"></script>
+<script type="text/javascript" src="shuffle.js"></script>
+<script type="text/javascript">
+
+function gup(name,tmpURL) // function specifically for mTurk; this gets out assignmentIds, workerIds, & hitIds.
+{
+	var regexS = "[\\?&]"+name+"=([^&#]*)";
+	var regex = new RegExp(regexS);
+	var results = regex.exec(tmpURL);
+	if (results == null)
+	{
+		return "";
+	}
+	
+	else
+	{
+		return results[1];
+	}
+}
+
+$(document).ready(function(){    
+	
+	// THIS TASK IS ORGANIZED AS FOLLOWS:
+	// FIRST THERE IS THE "REUSABLE FXNS" SECTION - I HAVE THESE IN EVERY ONE OF MY TASKS TO PREVENT SUBJECTS FROM ACCIDENTALLY RIGHT CLICKING "BACK" IN TASK, ETC.
+	// THEN THERE IS A SECTION ON THE INSTRUCTIONS FOR THE LEARNING PHASE TASK
+	// THEN THERE IS THE SECTION ON THE LEARNING PHASE TASK - THIS IS WHERE THE BUTTON PRESS IS CODED FOR EVERY ONE OF THE TASKS IN THIS DOCUMENT
+	// THEN THERE IS A SECTION ON THE INSTRUCTIONS FOR THE FILLER PHASE TASK
+	// THEN THERE IS THE SECTION ON THE FILLER PHASE TASK
+	// THEN THERE IS A SECTION ON THE INSTRUCTIONS FOR THE MEMORY PHASE TASK
+	// THEN THERE IS THE SECTION ON THE MEMORY PHASE TASK
+	// THEN THERE IS THE POST-TEST SECTION WHERE IT JUST HAS THE CODE SUBS WILL NEED TO INPUT
+	
+	//////////////////////////////////////////////////////////////REUSABLE FXNS //////////////////////////////////////////////////////////////
+	//to be able to submit the data from the last trial, we need to get the assignment ID, etc. from the Main Menu file
+	document.getElementById('assignmentId').value = gup('assignmentId', opener.document.referrer);
+	document.getElementById('hitId').value = gup('hitId', opener.document.referrer);
+	document.getElementById('workerId').value = gup('workerId', opener.document.referrer);
+	
+	var canvas = document.getElementById("myCanvas"); // myCanvas is to make sure that everything is presented in the middle of the screen
+	var ctx = canvas.getContext("2d"); // need context to draw on canvas
+	
+	//disabling mouse clicks in the task
+	//from: http://stackoverflow.com/questions/8595909/how-to-completley-disable-any-mouse-click
+	var event1 = $(document).click(function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+	});
+	
+
+	//from: http://stackoverflow.com/questions/8595909/how-to-completley-disable-any-mouse-click
+    //disable right click
+    $(document).bind('contextmenu', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+    });
+	
+	//Stops backspace presses (8) and spaces (32);
+	//from: http://stackoverflow.com/questions/1495219/how-can-i-prevent-the-backspace-key-from-navigating-back
+  	$(function(){
+        var rx = /INPUT|SELECT|TEXTAREA/i;
+        $(document).bind("keydown keypress", function(e){
+            if( e.which == 32 ||e.which == 8 )
+            { // 8 == backspace
+                if(!rx.test(e.target.tagName) || e.target.disabled || e.target.readOnly )
+                {
+                    e.preventDefault();
+                }
+            }
+        });
+  	});
+    
+	function hideAllHTML()
+	{
+		$("#startBlockOne").hide();
+		$("#NextButton").hide();
+		$("#RedoInstructOne").hide();
+		$("#Instructions").hide();
+		$("#Instructions1").hide();		
+	    $("#Instructions2").hide();
+		$("#Instructions3").hide();
+		$("#Instructions4").hide();
+		$("#Instructions5").hide();
+		$("#Instructions6").hide();
+		//no need to hide Procedure, RS, RC, etc. because style = display none
+		$("#ObjectLabel").hide();
+		$("#Filler_NextButton").hide();
+		$("#FillerStartInstruct").hide();
+		$("#startFillertask").hide();
+		$("#startFiller").hide();
+		$("#Filler_RedoInstructOne").hide();
+		$("#Mem_startTaskOne").hide();
+		$("#startMem").hide();
+		$("#Mem_NextButton").hide();
+		$("#MemstartInstruct").hide();
+		$("#Mem_RedoInstructOne").hide();
+		$("#indicator").hide();
+		$("#endLearning").hide();
+		$("#startMain").hide();
+		$("#endFiller").hide();
+		$("#header").hide();
+		$("#indicator2").hide();
+		$("#indicator3").hide();
+		$("#indicator4").hide();
+		$("#indicator5").hide();
+		$("#info").hide();
+		$("#instruction").hide();
+		$("#iframewarning").hide();
+		$("#PostTestQ").hide();
+		$("#demoCode").hide();
+		$("#returnButton").hide();
+		$("#resize").hide();
+		$("#endBlockButton").hide();
+		$("#Fillerresize").hide();
+		$("#Mem_resize").hide();
+		$("#startLearningTask").hide();
+		$("#mturk_form").hide();
+		$("#startPostTest").hide();
+		$("#screensize").hide();
+	}
+	
+	hideAllHTML();
+	
+	//////////////////////////////////////////////////////////////INSTRUCTIONS FOR LEARNING TASK //////////////////////////////////////////////////////////////
+	
+	var TOslideNum=0;
+	var TOmaxNum=10;
+	
+	$("#InstructionsHeader").show();
+	$("#ReadInstructions").show();
+	$("#startInstruct").show();
+	
+	function hideLPInstruct()
+	{
+		$("#Instructions").hide();
+		$("#Instructions1").hide();		
+	    $("#Instructions2").hide();
+		$("#Instructions3").hide();
+		$("#Instructions4").hide();
+		$("#Instructions5").hide();
+		$("#Instructions6").hide();
+		$("#startBlockOne").hide();
+		$("#RedoInstructOne").hide();
+	}
+	
+	//will hide all the instructions and show them the button to start the task
+    $("#startBlockOne").on('click', function(){
+		hideLPInstruct();
+		$("#InstructionsHeader").hide();
+		$("#ReadInstructions").hide();
+		$("#startLearningTask").show();
+		$("#info").show();
+	});
+
+	//helps them go through the task instructions bullet by bullet point
+	$("#NextButton").on('click', function(){
+	    TOslideNum=TOslideNum+1;
+		moveShow(TOslideNum);
+	});
+
+	//just the first button to actually start showing them the instructions
+	$("#startInstruct").on('click', function(){
+		$("#startInstruct").hide();
+		$("#NextButton").show();
+	    moveShow(TOslideNum);
+	});
+
+	//this is the button that lets them go back through the instructions if they want to see the RS, RC, etc. images again
+	$("#RedoInstructOne").on('click',function(){
+		$("#startInstruct").hide();
+		hideLPInstruct();
+		TOslideNum=TOslideNum-TOmaxNum;
+		moveShow(TOslideNum);
+	});
+	
+	//actual function with bullet by bullet point instructions
+	function moveShow(TOslideNum)
+	{
+		if (TOslideNum==0) 
+        {
+		   $("#Instructions").html('You will be presented with a series of object images that differ across 2 dimensions: <b>border color</b> (red/blue) and <b>border type</b> (square/circle). Examples of the four image categories will be shown after you click the button.');
+		   $("#Instructions").show(); 	
+		} 
+		else if (TOslideNum==1)
+		{
+			$("#ObjectLabel").text("RS - Red, Square");
+			$("#ObjectLabel").show();
+			$("#RS").show();
+		}
+		else if (TOslideNum==2)
+		{
+			$("#RS").hide();
+			$("#ObjectLabel").text("RC - Red, Circle");
+			$("#ObjectLabel").show();
+			$("#RC").show();
+		}
+		else if (TOslideNum==3)
+		{
+			$("#RC").hide();
+			$("#ObjectLabel").text("BS - Blue, Square");
+			$("#ObjectLabel").show();
+			$("#BS").show();
+		}
+		else if (TOslideNum==4)
+		{
+			$("#BS").hide();
+			$("#ObjectLabel").text("BC - Blue, Circle");
+			$("#ObjectLabel").show();
+			$("#BC").show();
+		}
+		else if (TOslideNum==5)
+		{
+			$("#BC").hide();
+			$("#ObjectLabel").hide();
+			$("#Instructions1").text('You will have to figure out, through trial-and-error via feedback about your responses, which button response is correct for each category. You will use the v/V, b/B, n/N, and m/M keys to respond. The correct response button for each image category will not change during this task.');
+			$("#Instructions1").show();
+		}
+		else if (TOslideNum==6) 
+		{		
+			$("#Procedure").show();
+			$("#Instructions2").text('Each trial proceeds in the following sequence. First, a fixation cross will be presented. Then, once an image has been presented, you may make your response. Next, you will be shown accurate performance feedback, followed by a blank screen. Note that no particular image will be shown more than once.');
+			$("#Instructions2").show();
+		}
+		else if (TOslideNum==7) 
+		{
+			$("#Procedure").hide();
+            $("#Instructions3").text('Please enlarge this window to encompass the entire computer screen and sit at a comfortable distance from the screen.');   
+			$("#Instructions3").show();
+		} 
+		else if (TOslideNum==8) 
+		{
+			$("#Instructions4").text('Respond to each image as quickly as possible while still being accurate. Always press the v/V key with your RIGHT index finger, the b/B key with your RIGHT middle finger, the n/N key with your RIGHT ring finger, and the m/M key with your RIGHT pinky finger.');
+			$("#Instructions4").show();	   
+		} 
+		else if (TOslideNum==9) 
+		{
+			$("#Instructions5").text('Please stay focused during the experiment. You must get above 65% accuracy to get paid. If your accuracy is above 90%, you will receive a bonus of $1.');
+			$("#Instructions5").show();
+		}
+		else if (TOslideNum==10) 
+		{
+			$("#Instructions6").text('This task will take 6.4 minutes to complete. Click the button to exit the instructions and proceed to the task.');
+			$("#Instructions6").show();
+		}
+		
+		if (TOslideNum==0) 
+		{
+		   $("#NextButton").show(); 
+		} 
+		else if (TOslideNum < TOmaxNum) 
+		{ 
+		   $("#NextButton").show(); 
+		} 
+		else 
+		{
+		   $("#NextButton").hide();
+		   $("#startBlockOne").show();
+		   $("#RedoInstructOne").show();	   
+		} 
+	
+	}
+    
+	//////////////////////////////////////////////////////////////LEARNING TASK //////////////////////////////////////////////////////////////
+	var runNumber = 1; // there is only 1 block in this task
+	var runCounter = -1; // i start at -1 because I add to the counter as soon as it is initialized.
+	var trialCounter = -1; // same reason
+	var trialNumber = 127; // there are 128 total trials
+	var keyPressed = 0; // will call this again later to check what key was pressed
+	var accuracy = 0; // assume incorrect until they press correct button
+	var respTime = []; // RT for later
+	var accsum = []; // accuracy feedback that they'll get at the end of the block
+	var PressCorrect = []; // how it determines accuracy
+    var PressCorrect2 = []; // extra one for capitalizations
+	var ACCCount = 0; //this will be a counter for all the accurate trials
+	var oldLS_File = ["https://people.duke.edu/~cb383/HLset/stim/LSW/1.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/2.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/3.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/4.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/5.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/6.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/7.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/8.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/9.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/10.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/11.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/12.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/13.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/14.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/15.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/16.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/17.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/18.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/19.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/20.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/21.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/22.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/23.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/24.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/25.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/26.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/27.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/28.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/29.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/30.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/31.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/32.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/33.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/34.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/35.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/36.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/37.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/38.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/39.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/40.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/41.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/42.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/43.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/44.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/45.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/46.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/47.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/48.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/49.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/50.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/51.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/52.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/53.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/54.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/55.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/56.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/57.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/58.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/59.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/60.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/61.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/62.jpg"];
+    var oldLL_File = ["https://people.duke.edu/~cb383/HLset/stim/LLW/1.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/2.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/3.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/4.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/5.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/6.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/7.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/8.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/9.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/10.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/11.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/12.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/13.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/14.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/15.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/16.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/17.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/18.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/19.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/20.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/21.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/22.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/23.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/24.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/25.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/26.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/27.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/28.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/29.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/30.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/31.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/32.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/33.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/34.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/35.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/36.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/37.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/38.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/39.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/40.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/41.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/42.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/43.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/44.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/45.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/46.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/47.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/48.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/49.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/50.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/51.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/52.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/53.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/54.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/55.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/56.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/57.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/58.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/59.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/60.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/61.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/62.jpg"];
+	var oldNS_File = ["https://people.duke.edu/~cb383/HLset/stim/NSW/1.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/2.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/3.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/4.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/5.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/6.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/7.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/8.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/9.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/10.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/11.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/12.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/13.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/14.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/15.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/16.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/17.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/18.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/19.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/20.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/21.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/22.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/23.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/24.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/25.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/26.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/27.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/28.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/29.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/30.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/31.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/32.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/33.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/34.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/35.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/36.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/37.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/38.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/39.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/40.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/41.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/42.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/43.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/44.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/45.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/46.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/47.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/48.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/49.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/50.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/51.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/52.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/53.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/54.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/55.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/56.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/57.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/58.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/59.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/60.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/61.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/62.jpg"];
+	var oldNL_File = ["https://people.duke.edu/~cb383/HLset/stim/NLW/1.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/2.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/3.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/4.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/5.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/6.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/7.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/8.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/9.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/10.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/11.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/12.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/13.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/14.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/15.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/16.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/17.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/18.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/19.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/20.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/21.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/22.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/23.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/24.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/25.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/26.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/27.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/28.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/29.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/30.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/31.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/32.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/33.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/34.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/35.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/36.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/37.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/38.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/39.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/40.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/41.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/42.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/43.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/44.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/45.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/46.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/47.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/48.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/49.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/50.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/51.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/52.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/53.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/54.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/55.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/56.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/57.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/58.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/59.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/60.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/61.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/62.jpg"];		
+	var imgCount = 0; //img counter for when I'm loading the images
+	var oldLS_imgs = new Array(32);
+    var oldLL_imgs = new Array(32);
+    var oldNS_imgs = new Array(32);
+    var oldNL_imgs = new Array(32);
+    var oldLScounter = 0;
+    var oldLLcounter = 0;
+    var oldNScounter = 0;
+    var oldNLcounter = 0;
+	var MatrixCounter = -1; // i use this counter so that I can keep all my face numbers in one matrix and still access that back to back
+    var feedbackType = 0; // default, to determine FB given
+	var ResponseMatrix = 0; // this is just so that I can see there's an equal number of times the sub will be pressing left and right buttons
+	var Category = 0; // this is to keep track of the category of the StimSequence presented (also redundant, but helpful when scanning data csv)
+	var StimCategory = 0; // this is to keep track of the category of the StimSequence presented (also redundant, but helpful when scanning data csv)
+	var Action = 0; // this is to help me think about how the key presses are organized.
+	
+	/// Stim Sequence set-up //
+	var LS_RS = [];
+    var LS_RC = [];
+    var LS_BS = [];
+    var LS_BC = [];
+	var LL_RS = [];
+    var LL_RC = [];
+    var LL_BS = [];
+    var LL_BC = [];
+	var NS_RS = [];
+    var NS_RC = [];
+    var NS_BS = [];
+    var NS_BC = [];
+	var NL_RS = [];
+    var NL_RC = [];
+    var NL_BS = [];
+    var NL_BC = [];
+	var StimSequence = [];
+    
+	//even presentation across all four image categories
+    for (i=0; i < 8; i++)
+    {
+        LL_RS=LL_RS.concat(1);
+        LL_RC=LL_RC.concat(2);
+        LL_BS=LL_BS.concat(3);
+        LL_BC=LL_BC.concat(4);
+        LS_RS=LS_RS.concat(5);
+        LS_RC=LS_RC.concat(6);
+        LS_BS=LS_BS.concat(7);
+        LS_BC=LS_BC.concat(8);
+        NL_RS=NL_RS.concat(9);
+        NL_RC=NL_RC.concat(10);
+        NL_BS=NL_BS.concat(11);
+        NL_BC=NL_BC.concat(12);
+        NS_RS=NS_RS.concat(13);
+        NS_RC=NS_RC.concat(14);
+        NS_BS=NS_BS.concat(15);
+        NS_BC=NS_BC.concat(16);	
+	}
+    
+	var data=[['']]; //data logfile
+	var logCounter = 0; //the counter for each data entry
+	var runStart; //when a run starts
+	var Responset; // response onset
+	var StimOnset; // stimulus onset
+	var d1; // marker for runstart (d1.getTime - ScreenPulled)
+	var d2; // marker for stimOnset (d2.gettime - runstart)
+	var d4; // marker for responseonset (d4.gettime - runstart)
+	var d8 = new Date();
+	var ScreenPulled; // when they load the experiment
+	ScreenPulled = d8.getTime();
+	window.hasResponseLearning = -1; // no reason to record any button presses now
+	
+	$("#startLearningTask").click(function(){
+		$("#startLearningTask").hide();
+		$("#info").hide();
+		runExp(); // will run my experiment function
+	});
+	
+	// to make sure that people are paying attention and don't have more than one task going, this fxn won't let a run start without a large enough window size
+	// once they click the button, the task will start only if the proper screen portions are in place
+	$("#resize").click(function(){ 
+		$("#resize").hide(); 
+		$("#indicator").hide();
+		checkSize();
+	});
+    
+	// once the task is done, it will show this end learning phase button, which will then 1) bind together the data from the learning phase to the element RTs and 2) show the filler phase instructions
+    $("#endLearning").click(function(){
+		$("#endLearning").hide(); 
+		$("#indicator").hide();
+        $("#RTs").val(data.join(";"));
+        $("#RTs", opener.window.document).val(data.join(";"));
+		$("#ReadInstructions").show();
+        $("#InstructionsHeader").show();
+        $("#FillerStartInstruct").show();
+	});
+   
+   // always load images in the background
+    loadImage();
+	
+	// this is my load image function; have to load before I start drawing b/c can take time
+	function loadImage()
+	{ 
+		if (imgCount < 32) 
+		{
+			oldLS_imgs[imgCount] = new Image();
+			oldLS_imgs[imgCount].src = oldLS_File[imgCount];
+			oldLS_imgs[imgCount].onload = loadImage;
+            
+            oldLL_imgs[imgCount] = new Image();
+			oldLL_imgs[imgCount].src = oldLL_File[imgCount];
+			oldLL_imgs[imgCount].onload = loadImage;
+                        
+            oldNS_imgs[imgCount] = new Image();
+			oldNS_imgs[imgCount].src = oldNS_File[imgCount];
+			oldNS_imgs[imgCount].onload = loadImage;
+            
+            oldNL_imgs[imgCount] = new Image();
+			oldNL_imgs[imgCount].src = oldNL_File[imgCount];
+			oldNL_imgs[imgCount].onload = loadImage;
+            
+			imgCount++;
+		}
+        else
+        {
+            loadImage2(); //filler phase image fxn
+        }
+	}
+	
+	function runExp()
+	{
+		logCounter = 0;
+		setup(); //sets up the stim sequence
+		runBlock(); //if I have multiple runs this fxn will be useful to continue initializing them
+	}
+	
+	function setup()
+	{
+		StimSequence = StimSequence.concat(LS_RS,LL_RC,NS_BS,NL_BC,LS_RC,LL_BS,NS_BC,NL_RS,LS_BS,LL_BC,NS_RS,NL_RC,LS_BC,LL_RS,NS_RC,NL_BS);
+		shuffle(StimSequence);
+	}
+	
+	function runBlock()
+	{
+		runCounter++;
+		if (runCounter < runNumber)
+		{
+            $("#indicator").hide();
+			trialCounter = -1; // resets the trial counter in case there are multiple blocks
+            window.hasResponseLearning = -1; // make sure no buttons have been recorded when the task hasn't even started
+            ctx.clearRect(0,0,canvas.width, canvas.height); // this is essentially like clearing the screen in matlab
+			if (runCounter > 0)
+            {
+                ACCCount = 0; // reset acc count before next block
+            }
+            checkSize();            
+		}
+	}
+	
+	// adapted from: http://stackoverflow.com/questions/3437786/get-the-size-of-the-screen-current-web-page-and-browser-window
+	function checkSize() 
+	{
+		var w = window.innerWidth;
+		var h = window.innerHeight;
+		if (w < 800 || h < 650) // needs 620 x 620 (canvas size) at least
+        {
+			$("#indicator").text('Your browser window is too small to display the images properly. Please increase the window size or your screen resolution.');
+  			$("#indicator").show();
+			$("#resize").show();
+		} 
+		else // if their screen is the proper size...
+		{
+			$("#resize").hide();
+			countDown(3); // start the countdown for the experiment
+		}	
+	}
+		
+    function countDown(time) // the countdown is meant to "prepare" the subjects that the experiment is beginning
+	{
+		if (time > 0)
+		{
+			ctx.textBaseline="middle";
+			ctx.textAlign="center";
+			ctx.fillStyle="black";
+			ctx.font="200px Arial";
+			ctx.clearRect(0,0, canvas.width, canvas.height);
+			ctx.fillText("" + time, canvas.width / 2, canvas.height / 2);
+			setTimeout(function(){countDown(time - 1)},1000);
+		}
+		else
+		{
+            d1 = new Date();
+			runStart = d1.getTime() - ScreenPulled;
+			showITI(); // once the countdown is finished, it goes to the ITI; this way, subs are less likely to mess up the first trial, i.e. if the stim was suddenly presented right after a 3-2-1 counter
+		}
+	}
+    
+	function showITI()
+	{
+        window.hasResponseLearning = -1; // don't record button presses here
+        ctx.clearRect(0,0,canvas.width, canvas.height); // no matter what, clear the screen
+		keyPressed = 0;
+		
+        if (trialCounter < trialNumber)
+        {
+            $("#indicator").hide();
+            trialCounter++; // I moved the trial counter here so that it would record the ITI button presses correctly
+            MatrixCounter++; // so basically each trial is initialized here in the ITI
+            feedbackType = 0; // resets feedback type as well
+            setTimeout(drawCross,750); // ITI then goes to draw Cross fxn
+        }
+        else // then you're done with the block!
+        {   
+            var accsum = Math.round((ACCCount/(trialNumber+1)) * 100); // calculates accuracy percentage (#correct trials/total)*100
+			//we ask them not to take longer than 4 minutes since this is a memory task...
+			$("#indicator").text("Your accuracy was " + accsum + " percent. If you would like to take a break now, you can, but please take no more than 4 minutes.");
+			$("#indicator").show();
+            $("#endLearning").show();
+        }
+	}
+    
+    function drawCross() // this is my fixation function
+	{
+        window.hasResponseLearning == -1;
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+		ctx.textBaseline="middle";
+		ctx.textAlign="center";
+		ctx.font="75px Arial";
+		ctx.fillStyle="black";
+		ctx.fillText("+", (canvas.width/2), (canvas.height/2)); // center screen fixation
+		setTimeout(drawStim,500);
+	}
+	
+	function drawStim()
+	{
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        window.hasResponseLearning = 0; // can respond here!
+        d2 = new Date();
+        StimOnset = d2.getTime() - runStart;
+		//drawing the borders before drawing the images since I fill in the white space too, which would cover up the images if I drew them first
+        	if (StimSequence[MatrixCounter] == 1 || StimSequence[MatrixCounter] == 5 || StimSequence[MatrixCounter] == 9 || StimSequence[MatrixCounter] == 13)
+			{
+				StimCategory = 'RS'; //RED SQUARE
+				ctx.fillStyle="red";
+                //context.fillRect(x,y,width,height); // draw rect to fill entire canvas, take off 20 on each side, incl. total width/height for 20 pix for border
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle="white";
+                ctx.fillRect(20, 20, 580, 580);
+                PressCorrect = 'v';
+                PressCorrect2 = 'V';
+				Action = 1;
+                ResponseMatrix = 1;
+			}
+			else if (StimSequence[MatrixCounter] == 2 || StimSequence[MatrixCounter] == 6 || StimSequence[MatrixCounter] == 10 || StimSequence[MatrixCounter] == 14)
+			{
+				StimCategory = 'RC'; //RED CIRCLE
+				ctx.fillStyle="red";
+                ctx.beginPath();
+                //context.arc(x,y,r,sAngle,eAngle,counterclockwise); // center is center, plus 310 radius, i.e., half of canvas; needed to be that large to allow for the width of the images
+                ctx.arc((canvas.width / 2),(canvas.height / 2),310,0,2*Math.PI);
+                ctx.fill();
+                ctx.fillStyle="white";
+                ctx.beginPath();
+                ctx.arc((canvas.width / 2),(canvas.height / 2),290,0,2*Math.PI);
+                ctx.fill();
+                PressCorrect = 'b';
+                PressCorrect2 = 'B';
+				Action = 2;
+                ResponseMatrix = 2;			
+			}
+			else if (StimSequence[MatrixCounter] == 3 || StimSequence[MatrixCounter] == 7 || StimSequence[MatrixCounter] == 11 || StimSequence[MatrixCounter] == 15)
+			{
+                StimCategory = 'BS'; // BLUE SQUARE
+				ctx.fillStyle="blue";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle="white";
+                ctx.fillRect(20, 20, 580, 580);
+                PressCorrect = 'n';
+                PressCorrect2 = 'N';
+				Action = 3;
+                ResponseMatrix = 3;			
+			}
+			else if (StimSequence[MatrixCounter] == 4 || StimSequence[MatrixCounter] == 8 || StimSequence[MatrixCounter] == 12 || StimSequence[MatrixCounter] == 16)
+			{
+                StimCategory = 'BC'; // BLUE CRICLE
+				ctx.fillStyle="blue";
+                ctx.beginPath();
+                ctx.arc((canvas.width / 2),(canvas.height / 2),310,0,2*Math.PI);
+                ctx.fill();
+                ctx.fillStyle="white";
+                ctx.beginPath();
+                ctx.arc((canvas.width / 2),(canvas.height / 2),290,0,2*Math.PI);
+                ctx.fill();
+                PressCorrect = 'm';
+                PressCorrect2 = 'M';
+				Action = 4;
+                ResponseMatrix = 4;			
+			}
+        
+            if (StimSequence[MatrixCounter] == 1 || StimSequence[MatrixCounter] == 2 || StimSequence[MatrixCounter] == 3 || StimSequence[MatrixCounter] == 4)
+            {
+                //context.drawImage(img,x,y,width,height); i.e., here drawing in the center of the screen
+                ctx.drawImage(oldLL_imgs[oldLLcounter], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				Category = 'NL';
+				oldLLcounter++;
+            }
+            else if (StimSequence[MatrixCounter] == 5 || StimSequence[MatrixCounter] == 6 || StimSequence[MatrixCounter] == 7 || StimSequence[MatrixCounter] == 8)
+            {
+                ctx.drawImage(oldLS_imgs[oldLScounter], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				Category = 'NS';
+				oldLScounter++;
+            }
+            else if (StimSequence[MatrixCounter] == 9 || StimSequence[MatrixCounter] == 10 || StimSequence[MatrixCounter] == 11 || StimSequence[MatrixCounter] == 12)
+            {
+                ctx.drawImage(oldNL_imgs[oldNLcounter], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				Category = 'ML';
+				oldNLcounter++;
+            }
+			else if (StimSequence[MatrixCounter] == 13 || StimSequence[MatrixCounter] == 14 || StimSequence[MatrixCounter] == 15 || StimSequence[MatrixCounter] == 16)
+            {
+                ctx.drawImage(oldNS_imgs[oldNScounter],((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				Category = 'MS';
+				oldNScounter++;
+            }
+        
+		setTimeout(showFeedback, 1250);  
+	}
+    
+    function showFeedback()
+	{
+        window.hasResponseLearning = -1; // no longer allow responses
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        ctx.textBaseline="middle";
+        ctx.textAlign="center";
+        ctx.fillStyle="black";
+        ctx.font="75px Arial";
+        
+		if (feedbackType == 1) // fb type coded when they presss a button
+        {
+            ctx.fillText("Correct", (canvas.width / 2), (canvas.height / 2), 500);
+        }
+        else // so if their fb type says they're not correct...
+        {        
+            if (feedbackType == 2) // fb type 2 was still under "if window.hasResponseLearning = 0" aka if they responded; so it established incorrect response
+            {
+                ctx.fillText("Incorrect", (canvas.width / 2), (canvas.height / 2), 500);
+            }
+            else // and if they're not incorrect, they haven't responded or didn't respond in time
+            {
+                //in case they didn't hit a button, hard code the accuracy & fb type too
+                accuracy = 0;
+                feedbackType = 3;
+                data[logCounter++] = ["RespITI:", 6, logCounter, trialCounter, MatrixCounter, runCounter, oldLLcounter, oldLScounter, oldNLcounter, oldNScounter, Action, Category, StimCategory, StimSequence[MatrixCounter], ResponseMatrix, PressCorrect, keyPressed, accuracy, respTime, feedbackType, ACCCount];
+                ctx.fillText("Respond quicker",(canvas.width / 2), (canvas.height / 2), 500);
+            }
+        }
+        
+        setTimeout(showITI, 500);	// after fb, go to the ITI
+	}
+		
+    $("body").keypress(function(event) // all the code for when they press a button
+        {        
+            keyPressed = String.fromCharCode(event.which); // identifies which key was pressed
+			if (window.hasResponseLearning == 0) // this ensures that it's getting the key that was pressed only when key presses were allowed
+            {
+				if (keyPressed == "v" || keyPressed == "b" || keyPressed == "n" || keyPressed == "m" || keyPressed == "V" || keyPressed == "B" || keyPressed == "N" || keyPressed == "M") // will only allow the instructed key presses (and not any others)
+                {
+                    window.hasResponseLearning = -1; // this makes certain that keypresses aren't logged after the first one
+                    d4 = new Date();
+                    Responset = d4.getTime() - runStart;
+                    respTime = Responset - StimOnset; // calculating RT
+                
+                    if (keyPressed == PressCorrect || keyPressed == PressCorrect2) // compares keypress to the correct press for a trial
+					{
+						if (respTime < 1250) // within the response time given
+						{
+							accuracy = 1;
+							feedbackType = 1;
+							ACCCount++;
+                            data[logCounter++] = ["Resp:", 6, logCounter, trialCounter, MatrixCounter, runCounter, oldLLcounter, oldLScounter, oldNLcounter, oldNScounter, Action, Category, StimCategory, StimSequence[MatrixCounter], ResponseMatrix, PressCorrect, keyPressed, accuracy, respTime, feedbackType, ACCCount];
+						}
+						else //not within response deadline, so give fb time-out
+						{
+							feedbackType = 3;
+							accuracy = 0;
+						}
+					}
+                    else // if they didn't press the right key, they might not have responded OR responded incorrectly
+					{
+						if (respTime < 1250)
+						{
+							accuracy = 0;
+							feedbackType = 2;
+                            data[logCounter++] = ["Resp:", 6, logCounter, trialCounter, MatrixCounter, runCounter, oldLLcounter, oldLScounter, oldNLcounter, oldNScounter, Action, Category, StimCategory, StimSequence[MatrixCounter], ResponseMatrix, PressCorrect, keyPressed, accuracy, respTime, feedbackType, ACCCount];
+						}
+						else
+						{
+							feedbackType = 3;
+							accuracy = 0;
+						}
+					}                    
+						
+                }
+            }
+			else if (window.hasResponseFiller == 0) // now this is the same exact format for the filler phase task
+			{
+				if (keyPressed == "z" || keyPressed == "Z" || keyPressed == "c" || keyPressed == "C")
+				{
+					window.hasResponseFiller = -1;
+					Fillerd4 = new Date();
+					FillerResponset = Fillerd4.getTime() - FillerrunStart;
+					FillerrespTime = FillerResponset - FillerStimOnset;
+					
+					if (keyPressed == FillerPressCorrect || keyPressed == FillerPressCorrect2)
+					{
+						if (FillerrespTime < 1000)
+						{
+							Filleraccuracy = 1;
+							FillerfeedbackType = 0;
+							if (FillertrialCounter < 28)
+							{
+								Filler_PRACCCount++; // this is for accurate practice counter feedback
+							}
+							else
+							{
+								FillerACCCount++;
+							}
+							Fillerdata[FillerlogCounter++] = ["FillerResp:", FillerlogCounter, FillertrialCounter, FillerMatrixCounter, FillerrunCounter, FillerProcedurePresented[FillerMatrixCounter], FaceStimMatrix[FillerMatrixCounter], TrialType[FillerMatrixCounter], FillerPressCorrect, FillerResponseMatrix, keyPressed, Filleraccuracy, FillerrespTime, FillerfeedbackType, Filler_PRACCCount, FillerACCCount];
+						}
+						else
+						{
+							FillerfeedbackType = 1;
+							Filleraccuracy = 0;
+						}
+					}
+					else
+					{
+						if (FillerrespTime < 1000)
+						{
+							Filleraccuracy = 0;
+							FillerfeedbackType = 0;
+							Fillerdata[FillerlogCounter++] = ["FillerResp:", FillerlogCounter, FillertrialCounter, FillerMatrixCounter, FillerrunCounter, FillerProcedurePresented[FillerMatrixCounter], FaceStimMatrix[FillerMatrixCounter], TrialType[FillerMatrixCounter], FillerPressCorrect, FillerResponseMatrix, keyPressed, Filleraccuracy, FillerrespTime, FillerfeedbackType, Filler_PRACCCount, FillerACCCount];
+						}
+						else
+						{
+							FillerfeedbackType = 1;
+							Filleraccuracy = 0;
+						}
+					}					
+				}
+			}
+			else if (window.hasResponseMem == 0) // now for the memory task
+			{	
+				if (keyPressed == "h" || keyPressed == "j" || keyPressed == "l" || keyPressed == "k" || keyPressed == "H" || keyPressed == "J" || keyPressed == "L" || keyPressed == "K")
+				{
+					window.hasResponseMem = -1;
+					Mem_d4 = new Date();
+					Mem_Responset = Mem_d4.getTime() - Mem_runStart;
+					Mem_respTime = Mem_Responset - Mem_StimOnset;
+					
+					if (Mem == 1) // aka it's a new face
+					{
+						if (keyPressed == "h" || keyPressed == "j" || keyPressed == "H" || keyPressed == "J") // h & j mean old, l & k mean new
+						{
+							FA = 1;
+							Hit = 0;
+							Miss = 0;
+							CR = 0;
+						}
+						else if (keyPressed == "l" || keyPressed == "k" || keyPressed == "L" || keyPressed == "K")
+						{
+							Hit = 0;
+							FA = 0;
+							CR = 1;
+							Miss = 0;
+						}
+					}
+					else if (Mem == 2) // aka it's an old face
+					{
+						if (keyPressed == "h" || keyPressed == "j" || keyPressed == "H" || keyPressed == "J") // h & j mean old, l & k mean new
+						{
+							FA = 0;
+							Hit = 1;
+							Miss = 0;
+							CR = 0;
+						}
+						else if (keyPressed == "l" || keyPressed == "k" || keyPressed == "L" || keyPressed == "K")
+						{
+							Hit = 0;
+							FA = 0;
+							CR = 0;
+							Miss = 1;
+						}
+					}
+					
+					Mem_data[Mem_logCounter++] = ["MemResp:", 6, Mem_logCounter, Mem_trialCounter, Mem_MatrixCounter, Mem_runCounter, Mem_Category, ObjStimMatrix[Mem_MatrixCounter], StimSequence[oldStimcounter], NewStimMatrix[newStimcounter], oldLLcounter, oldLScounter, oldNLcounter, oldNScounter, newLScounter, newLLcounter, newNScounter, newNLcounter, keyPressed, Mem, Mem_respTime, Hit, FA, CR, Miss];
+				}
+			}
+			else if (window.hasResponseSourceMemColor == 0) //now for source memory for the color of the border
+			{
+				if (keyPressed == "a" || keyPressed == "s" || keyPressed == "A" || keyPressed == "S")
+				{
+					window.hasResponseSourceMemColor = -1;
+					SourceMemColor_d4 = new Date();
+					SourceMemColor_Responset = SourceMemColor_d4.getTime() - Mem_runStart;
+					SourceMemColor_respTime = SourceMemColor_Responset - SourceMemColor_Onset;
+					
+					if (keyPressed == SourceMemColor_PressCorrect || keyPressed == SourceMemColor_PressCorrect2)
+					{
+						SourceMemColor_accuracy = 1;
+					}
+					else
+					{
+						SourceMemColor_accuracy = 0;
+					}
+                    
+					
+					SourceMemColor_data[SourceMemColor_logCounter++] = ["SourceMemColorResp:", 6, SourceMemColor_logCounter, Mem_trialCounter, Mem_MatrixCounter, Mem_runCounter, Mem_Category, ObjStimMatrix[Mem_MatrixCounter], StimSequence[oldStimcounter], NewStimMatrix[newStimcounter], oldLLcounter, oldLScounter, oldNLcounter, oldNScounter, newLScounter, newLLcounter, newNScounter, newNLcounter, keyPressed, SourceMemColor_PressCorrect, SourceMemColor_accuracy, SourceMemColor_respTime, SourceMemColor_ResponseMatrix];
+				}
+			}
+			else if (window.hasResponseSourceMemShape == 0) // now for source memory for the shape of the border
+			{
+				if (keyPressed == "a" || keyPressed == "s" || keyPressed == "A" || keyPressed == "S")
+				{
+					window.hasResponseSourceMemShape = -1;
+					SourceMemShape_d4 = new Date();
+					SourceMemShape_Responset = SourceMemShape_d4.getTime() - Mem_runStart;
+					SourceMemShape_respTime = SourceMemShape_Responset - SourceMemShape_Onset;
+					
+					if (keyPressed == SourceMemShape_PressCorrect || keyPressed == SourceMemShape_PressCorrect2)
+					{
+						SourceMemShape_accuracy = 1;
+					}
+					else
+					{
+						SourceMemShape_accuracy = 0;
+					}
+                    
+					SourceMemShape_data[SourceMemShape_logCounter++] = ["SourceMemShapeResp:", 6, SourceMemShape_logCounter, Mem_trialCounter, Mem_MatrixCounter, Mem_runCounter, Mem_Category, ObjStimMatrix[Mem_MatrixCounter], StimSequence[oldStimcounter], NewStimMatrix[newStimcounter], oldLLcounter, oldLScounter, oldNLcounter, oldNScounter, newLScounter, newLLcounter, newNScounter, newNLcounter, keyPressed, SourceMemShape_PressCorrect, SourceMemShape_accuracy, SourceMemShape_respTime, SourceMemShape_ResponseMatrix];
+				}
+			}
+        });
+	
+    //////////////////////////////////////////////////////////////FILLER INSTRUCTIONS //////////////////////////////////////////////////////////////
+	
+	var Filler_slideNum=0;
+	var Filler_maxNum=10;
+
+	//EVERYTHING HERE IS BASICALLY THE SAME THAT WAS CODED FOR THE LEARNING INSTRUCTIONS - ONLY DIFFERS BY WHAT THE ACTUAL INSTRUCTIONS ARE
+	function hideFillerInstruct()
+	{
+		$("#Instructions").hide();
+		$("#Instructions1").hide();		
+	    $("#Instructions2").hide();
+		$("#Instructions3").hide();
+		$("#Instructions4").hide();
+		$("#Instructions5").hide();
+		$("#Instructions6").hide();
+		$("#startFillertask").hide();
+		$("#Filler_RedoInstructOne").hide();
+	}
+	
+	$("#startFillertask").on('click', function(){
+		hideFillerInstruct();
+		$("#ReadInstructions").hide();
+		$("#InstructionsHeader").hide();
+		$("#startFiller").show();
+		$("#info").show();
+	});
+
+	$("#Filler_NextButton").on('click', function(){
+	    Filler_slideNum=Filler_slideNum+1;
+		Filler_moveShow(Filler_slideNum);
+	});
+
+	$("#FillerStartInstruct").on('click', function(){
+		$("#FillerStartInstruct").hide();
+		$("#Filler_NextButton").show();
+	    Filler_moveShow(Filler_slideNum);
+	});
+    
+    $("#Filler_RedoInstructOne").on('click',function(){
+		hideFillerInstruct();
+		$("#FillerStartInstruct").hide();
+		$("#InstructionsHeader").show();
+		$("#ReadInstructions").show();
+		Filler_slideNum=Filler_slideNum-Filler_maxNum;
+		Filler_moveShow(Filler_slideNum);
+	});
+
+	function Filler_moveShow(Filler_slideNum)
+	{
+		if (Filler_slideNum==0) {
+            $("#Instructions").text('In this part of the experiment, you will now be presented with images of faces; however, rather than having to learn via trial and error which key to press, you will now be told which keys to press according to particular task rules.');
+            $("#Instructions").show();
+		} 
+		else if (Filler_slideNum==1) 
+		{
+            $("#Instructions1").html('On each trial, you will categorize whether each face is <b>old</b> or <b>young</b> or <b>female</b> or <b>male</b> based on the color of the border that surrounds the face image. Young means less than 30-years-old, while Old means greater than 45-years-old. Examples of the four face image categories will be shown after you click the button.');
+			$("#Instructions1").show(); 
+		} 
+		else if (Filler_slideNum==2)
+		{
+			$("#FaceLabel").text("OF - Old, Female");
+			$("#FaceLabel").show();
+			$("#OF").show();
+		}
+		else if (Filler_slideNum==3)
+		{
+			$("#OF").hide();
+			$("#FaceLabel").text("OM - Old, Male");
+			$("#FaceLabel").show();
+			$("#OM").show();
+		}
+		else if (Filler_slideNum==4)
+		{
+			$("#OM").hide();
+			$("#FaceLabel").text("YF - Young, Female");
+			$("#FaceLabel").show();
+			$("#YF").show();
+		}
+		else if (Filler_slideNum==5)
+		{
+			$("#YF").hide();
+			$("#FaceLabel").text("YM - Young, Male");
+			$("#FaceLabel").show();
+			$("#YM").show();
+		}
+		else if (Filler_slideNum==6)
+		{
+			$("#YM").hide();
+			$("#FaceLabel").hide();
+			$("#Instructions2").html('If the border is <text style="color:green">GREEN, <text style="color:black">press z/Z if the face is OLD and c/C if the face is YOUNG. If the border is <text style="color:orange">ORANGE, <text style="color:black">press z/Z if the face is FEMALE and c/C if the face is MALE.');
+			$("#Instructions2").show();
+		} 
+		else if (Filler_slideNum==7) 
+		{
+            $("#Instructions3").text('Please enlarge this window to encompass the entire computer screen and sit at a comfortable distance from the screen.');   
+			$("#Instructions3").show();
+		} 
+		else if (Filler_slideNum==8) 
+		{
+            $("#Instructions4").text('Respond to each face as quickly as possible while still being accurate. You will have until the face disappears to make your response. Always press the z/Z key with your LEFT index finger and the c/C key with your RIGHT index finger.');
+			$("#Instructions4").show();	   
+		} 
+		else if (Filler_slideNum==9) 
+		{
+            $("#Instructions5").text('You will first go through a practice round to get acquainted with the task. Please stay focused during the experiment and try to get an accuracy above 80%.');
+            $("#Instructions5").show();
+		}
+		else if (Filler_slideNum==10) 
+		{
+            $("#Instructions6").text('This task will take 4 minutes. Press the button to begin the practice.');
+			$("#Instructions6").show();
+		}
+	
+		if (Filler_slideNum==0) 
+		{
+            $("#Filler_NextButton").show(); 
+		} 
+		else if (Filler_slideNum < Filler_maxNum) 
+		{
+            $("#Filler_NextButton").show(); 
+		} 
+		else 
+		{
+            $("#Filler_NextButton").hide();
+            $("#startFillertask").show();
+            $("#Filler_RedoInstructOne").show();
+		} 
+	
+	}
+	
+	//////////////////////////////////////////////////////////////FILLER FINAL //////////////////////////////////////////////////////////////
+		
+	var FillerrunNumber = 1;
+	var FillerrunCounter = -1; // i start at -1 because I add to the counter as soon as it is initialized.
+	var FillertrialCounter = -1; // same reason
+	var FillertrialNumber = 119; // 120 trials per block b/c added to *after* trial starts
+	var Filleraccuracy = 0; // default
+	var FillerrespTime = []; // default
+	var Filleraccsum = []; // accuracy feedback that they'll get at the end of the block
+	var FillerPressCorrect = []; // this is how i mark correct answers
+    var FillerPressCorrect2 = [];
+    var FillerACCCount = 0; //this will be a counter for all the accurate trials
+	var Filler_PRACCCount = 0;
+	var FillerCategory = 0;
+	var YMNfileNames = ["https://people.duke.edu/~cb383/Faces/YM/YMN_1.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_2.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_3.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_4.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_5.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_6.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_7.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_8.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_9.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_10.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_11.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_12.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_13.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_14.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_15.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_16.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_17.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_18.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_19.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_20.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_21.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_22.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_23.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_24.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_25.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_26.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_27.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_28.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_29.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_30.jpg"];
+	var YFNfileNames = ["https://people.duke.edu/~cb383/Faces/YF/YFN_1.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_2.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_3.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_4.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_5.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_6.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_7.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_8.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_9.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_10.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_11.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_12.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_13.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_14.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_15.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_16.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_17.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_18.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_19.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_20.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_21.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_22.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_23.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_24.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_25.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_26.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_27.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_28.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_29.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_30.jpg"];
+	var OMNfileNames = ["https://people.duke.edu/~cb383/Faces/OM/OMN_1.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_2.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_3.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_4.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_5.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_6.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_7.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_8.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_9.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_10.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_11.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_12.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_13.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_14.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_15.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_16.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_17.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_18.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_19.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_20.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_21.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_22.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_23.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_24.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_25.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_26.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_27.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_28.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_29.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_30.jpg"];
+	var OFNfileNames = ["https://people.duke.edu/~cb383/Faces/OF/OFN_1.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_2.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_3.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_4.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_5.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_6.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_7.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_8.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_9.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_10.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_11.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_12.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_13.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_14.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_15.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_16.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_17.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_18.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_19.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_20.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_21.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_22.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_23.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_24.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_25.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_26.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_27.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_28.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_29.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_30.jpg"];
+	var FillerimgCount = 0; //img counter for when I'm loading the images
+	var YMNimgs = new Array(30); // matrix to load those images
+	var YFNimgs = new Array(30);
+	var OMNimgs = new Array(30);
+	var OFNimgs = new Array(30);
+	var YMNcounter = 0; // each one has its own counter because of the way I coded the expt
+    var YFNcounter = 0;
+    var OMNcounter = 0;
+    var OFNcounter = 0;
+	var FillerMatrixCounter = -1; // I used this as another counter throughout the experiment (since trials are by block & trialCounter is reset)
+    var FillerfeedbackType = 0; // will tell you whether or not they've responded within the time frame
+    var FillerProcedurePresented = [1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,1,2,1,2,1,2,1,2,1,2];
+    
+	var Fillerdata=[['']];
+	var FillerrunStart; //when a run starts
+	var FillerlogCounter = 0; //the counter for each data entry
+	var FillerResponset; // response onset
+    var FillerStimOnset;
+	var Fillerd2; // marker for when image is presented
+	var Fillerd1; // marker for runstart
+	var Fillerd4; // marker for when a key is pressed
+	var FillerStimTime; // this is the time the stimulus was presented; so RT is responset - stimttime;
+	
+    window.hasResponseFiller = -1; // this is to ensure that data is not currently logged
+	
+	//starts the filler practice task
+	$("#startFiller").click(function(){
+		$("#startFiller").hide();
+		$("#info").hide();
+		runFiller();
+	});
+    
+	//after practice is concluded, this will start the filler task again
+    $("#startMain").click(function(){
+		$("#startMain").hide();
+		$("#indicator").hide();
+		setTimeout(FillerdrawCross,1000);
+	});
+	
+	//when the filler phase is over, this will 1) bind together the data into a filler HTML tag & 2) show the instructions for the memory task
+    $("#endFiller").click(function(){ 
+        $("#endFiller").hide();
+        $("#indicator").hide();
+        $("#Filler").val(Fillerdata.join(";"));
+        $("#Filler", opener.window.document).val(Fillerdata.join(";"));
+        $("#ReadInstructions").show();
+        $("#InstructionsHeader").show();
+        $("#MemstartInstruct").show();
+	});
+	
+	$("#Fillerresize").click(function(){ // to make sure that people are paying attention and don't have more than one task going, this fxn won't let a run start without a large enough window size
+		$("#Fillerresize").hide(); // once they click the button, the task will start only if the proper screen portions are in place
+		$("#indicator").hide();
+		FillercheckSize();
+	});
+    
+	// stimuli sequence set up
+    var TrialType1 = [];
+    var TrialType2 = [];
+    var PracticeTrials = [];
+    var interim = [];
+    var TrialType = [];
+	
+    for (i=0; i < 28; i++) 
+	{
+        PracticeTrials=PracticeTrials.concat(0); // practice; just filling this in
+	}
+    
+	for (i=0; i < 46; i++) 
+	{
+        TrialType1=TrialType1.concat(1); // task-switching
+        TrialType2=TrialType2.concat(2); // repeat
+	}
+	
+	interim = interim.concat(TrialType1,TrialType2);
+	shuffle(interim);
+    TrialType = TrialType.concat(PracticeTrials,interim);
+    
+    var FirstSet = shuffle([1,2,3,4,1,2,3,4]);
+	var SecondSet = shuffle([1,2,3,4,1,2,3,4]);
+	var ThirdSet = shuffle([1,2,3,4,1,2,3,4]);
+	var FourthSet = shuffle([1,2,3,4,1,2,3,4]);
+	var FifthSet = shuffle([1,2,3,4,1,2,3,4]);
+	var SixthSet = shuffle([1,2,3,4,1,2,3,4]);
+	var SeventhSet = shuffle([1,2,3,4,1,2,3,4]);
+	var EighthSet = shuffle([1,2,3,4,1,2,3,4]);
+    var NinthSet = shuffle([1,2,3,4,1,2,3,4]);
+	var TenthSet = shuffle([1,2,3,4,1,2,3,4]);
+	var EleventhSet = shuffle([1,2,3,4,1,2,3,4]);
+	var TwelvthSet = shuffle([1,2,3,4,1,2,3,4]);
+	var ThirteenthSet = shuffle([1,2,3,4,1,2,3,4]);
+	var FourteenthSet = shuffle([1,2,3,4,1,2,3,4]);
+	var FifteenthSet = shuffle([1,2,3,4,1,2,3,4]);
+    var FaceStimMatrix = [];
+    
+    FaceStimMatrix = FaceStimMatrix.concat(FirstSet,SecondSet,ThirdSet,FourthSet,FifthSet,SixthSet,SeventhSet,EighthSet,NinthSet,TenthSet,EleventhSet,TwelvthSet,ThirteenthSet,FourteenthSet,FifteenthSet);
+    
+    function loadImage2()
+	{ 
+		if (FillerimgCount < 30) 
+		{
+			YMNimgs[FillerimgCount] = new Image();
+			YMNimgs[FillerimgCount].src = YMNfileNames[FillerimgCount];
+			YMNimgs[FillerimgCount].onload = loadImage;
+            
+            YFNimgs[FillerimgCount] = new Image();
+			YFNimgs[FillerimgCount].src = YFNfileNames[FillerimgCount];
+			YFNimgs[FillerimgCount].onload = loadImage;
+            
+            OMNimgs[FillerimgCount] = new Image();
+			OMNimgs[FillerimgCount].src = OMNfileNames[FillerimgCount];
+			OMNimgs[FillerimgCount].onload = loadImage;
+            
+            OFNimgs[FillerimgCount] = new Image();
+			OFNimgs[FillerimgCount].src = OFNfileNames[FillerimgCount];
+			OFNimgs[FillerimgCount].onload = loadImage;
+			
+			FillerimgCount++;
+		}
+        else
+        {
+            loadImage3(); // memory images
+        }
+	}
+     
+    //simple "runExp" to separate out the WHOLE experiment from individual blocks
+	function runFiller()
+	{
+        FillerSetup();
+        FillerrunBlock();
+	}
+	
+    function FillerSetup()
+    {   
+        for (i=28; i < 120; i++)
+        { 
+            if (TrialType[i] == 1) //switch trial
+            {
+				if (FillerProcedurePresented[i-1] == 1) //if one task
+                {
+                    FillerProcedurePresented[i] = 2; //flip to the other
+                }
+                else if (FillerProcedurePresented[i-1] == 2)
+                {
+                    FillerProcedurePresented[i] = 1;
+                }
+            }
+            else if (TrialType[i] == 2) //repeat trial
+            {
+                if (FillerProcedurePresented[i-1] == 1)
+                {
+                    FillerProcedurePresented[i] = 1;
+                }
+                else if (FillerProcedurePresented[i-1] == 2)
+                {
+                    FillerProcedurePresented[i] = 2;
+                }
+            }
+        }
+		console.log(TrialType); //this was for when I was debugging; good to be able to look at the console
+        console.log(FillerProcedurePresented);
+    }
+    
+    function FillerrunBlock() // main task is separated into 2 blocks
+	{
+		FillerrunCounter++;
+		if (FillerrunCounter < FillerrunNumber)
+		{
+            //since I don't have multiple blocks, I don't need to hide the indicator HTML or reset the ACC counter or trial counter here
+            window.hasResponseFiller = -1; // make sure no buttons have been recorded when the task hasn't even started
+			ctx.clearRect(0,0,canvas.width, canvas.height); // this is essentially like clearing the screen in matlab
+            FillercheckSize();
+		}
+	}
+    
+    // adapted from: http://stackoverflow.com/questions/3437786/get-the-size-of-the-screen-current-web-page-and-browser-window
+	function FillercheckSize() 
+	{
+		var w = window.innerWidth;
+		var h = window.innerHeight;
+		if (w < 800 || h < 650)
+        {
+			$("#indicator").text('Your browser window is too small to display the images properly. Please increase the window size or your screen resolution.');
+  			$("#indicator").show();
+			$("#Fillerresize").show();
+		} 
+		else // if their screen is the proper size...
+		{
+			$("#Fillerresize").hide();
+			FillercountDown(3); // start the countdown for the experiment
+		}	
+	}
+    
+    function FillercountDown(time) // the countdown is meant to "prepare" the subjects that the experiment is beginning
+	{
+		if (time > 0)
+		{
+			ctx.textBaseline="middle";
+			ctx.textAlign="center";
+			ctx.fillStyle="black";
+			ctx.font="200px Arial";
+			ctx.clearRect(0,0, canvas.width, canvas.height);
+			ctx.fillText("" + time, canvas.width / 2, canvas.height / 2);
+			setTimeout(function(){FillercountDown(time - 1)},1000);
+		}
+		else
+		{
+			Fillerd1 = new Date();
+			FillerrunStart = Fillerd1.getTime() - ScreenPulled;
+			FillerBlank();
+		}
+	}
+    
+    function FillerBlank()
+	{
+		window.hasResponseFiller = -1;
+		ctx.clearRect(0,0,canvas.width, canvas.height); // no matter what, clear the screen
+		keyPressed = 0;
+    
+        if (FillertrialCounter < FillertrialNumber)
+        {
+			if (FillertrialCounter == 27)
+			{
+				var Filleraccsum = Math.round((Filler_PRACCCount/28) * 100);
+				$("#indicator").html('Your accuracy on the practice was ' + Filleraccsum + ' percent. <br /><br />Remember: If the border is <text style="color:green">GREEN, <text style="color:black"> press z/Z if the face is OLD and c/C if the face is YOUNG. <br />If the border is <text style="color:orange">ORANGE, <text style="color:black"> press z/Z if the face is FEMALE and c/C if the face is MALE. <br /><br />Click the button to continue with the main task.');
+				$("#indicator").show();
+				$("#startMain").show();
+			}
+			else if (FillertrialCounter < 27 || FillertrialCounter > 27)
+			{
+				$("#indicator").hide();
+				setTimeout(FillerdrawCross,800);
+			}
+        }
+        else // then you're done with the block!
+        {   
+            $("#indicator").hide();
+            var Filleraccsum = Math.round((FillerACCCount/92) * 100); // calculates accuracy percentage (#correct trials/total)*100 for each block
+            $("#indicator").text("Your accuracy on this task was " + Filleraccsum + " percent. If you would like to take a break now, you can, but please take no more than 4 minutes.");
+            $("#indicator").show();
+            $("#endFiller").show();
+        }
+	}
+    
+    function FillerdrawCross() // this is my fixation function
+	{
+		window.hasResponseFiller = -1;
+		//don't need the center or middle alignment because I've never not aligned the text that way so it still stays in that style
+		ctx.font="100px Arial"; 
+		ctx.fillStyle="black";
+		ctx.fillText("+", (canvas.width/2), (canvas.height/2));
+		setTimeout(FillerdrawObject,200); //500 ms ISI
+	}
+    
+    function FillerdrawObject()
+	{
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        window.hasResponseFiller = 0;
+		FillerMatrixCounter++;
+		FillertrialCounter++;
+        Fillerd2 = new Date();
+        FillerStimOnset = Fillerd2.getTime() - FillerrunStart;
+        if (FaceStimMatrix[FillerMatrixCounter] == 1)
+		{
+            if (FillerProcedurePresented[FillerMatrixCounter] == 1) //1 means green/age
+            {
+                ctx.fillStyle="green";
+                ctx.fillRect(20, 20, 580, 580);
+				ctx.fillStyle="white";
+				ctx.fillRect(40, 40, 540, 540);
+                FillerPressCorrect = 'c';
+				FillerPressCorrect2 = 'C';
+                FillerResponseMatrix = 2;
+            }
+            else if (FillerProcedurePresented[FillerMatrixCounter] == 2) //2 means orange/gender
+            {
+                ctx.fillStyle="orange";
+                ctx.fillRect(20, 20, 580, 580);
+				ctx.fillStyle="white";
+				ctx.fillRect(40, 40, 540, 540);
+                FillerPressCorrect = 'c';
+				FillerPressCorrect2 = 'C';
+                FillerResponseMatrix = 2;
+            }
+            ctx.drawImage(YMNimgs[YMNcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+            FillerCategory = 'YM';
+            YMNcounter++;
+		}
+		else if (FaceStimMatrix[FillerMatrixCounter] == 2)
+		{
+            if (FillerProcedurePresented[FillerMatrixCounter] == 1) 
+            {
+                ctx.fillStyle="green";
+                ctx.fillRect(20, 20, 580, 580);
+				ctx.fillStyle="white";
+				ctx.fillRect(40, 40, 540, 540);
+                FillerPressCorrect = 'c';
+				FillerPressCorrect2 = 'C';
+                FillerResponseMatrix = 2;
+            }
+            else if (FillerProcedurePresented[FillerMatrixCounter] == 2) 
+            {
+                ctx.fillStyle="orange";
+                ctx.fillRect(20, 20, 580, 580);
+				ctx.fillStyle="white";
+				ctx.fillRect(40, 40, 540, 540);
+				FillerPressCorrect = 'z';
+                FillerPressCorrect2 = 'Z';
+                FillerResponseMatrix = 1;
+            }
+            ctx.drawImage(YFNimgs[YFNcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+            FillerCategory = 'YF';
+            YFNcounter++;
+		}
+		else if (FaceStimMatrix[FillerMatrixCounter] == 3)
+		{
+            if (FillerProcedurePresented[FillerMatrixCounter] == 1) 
+            {
+                ctx.fillStyle="green";
+                ctx.fillRect(20, 20, 580, 580);
+				ctx.fillStyle="white";
+				ctx.fillRect(40, 40, 540, 540);
+                FillerPressCorrect = 'z';
+				FillerPressCorrect2 = 'Z';
+                FillerResponseMatrix = 1;
+            }
+            else if (FillerProcedurePresented[FillerMatrixCounter] == 2) 
+            {
+                ctx.fillStyle="orange";
+                ctx.fillRect(20, 20, 580, 580);
+				ctx.fillStyle="white";
+				ctx.fillRect(40, 40, 540, 540);
+                FillerPressCorrect = 'c';
+				FillerPressCorrect2 = 'C';
+                FillerResponseMatrix = 2;
+            }
+            ctx.drawImage(OMNimgs[OMNcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+			FillerCategory = 'OM';
+            OMNcounter++;
+		}
+		else if (FaceStimMatrix[FillerMatrixCounter] == 4)
+		{
+            if (FillerProcedurePresented[FillerMatrixCounter] == 1) 
+            {
+                ctx.fillStyle="green";
+                ctx.fillRect(20, 20, 580, 580);
+				ctx.fillStyle="white";
+				ctx.fillRect(40, 40, 540, 540);
+                FillerPressCorrect = 'z';
+				FillerPressCorrect2 = 'Z';
+                FillerResponseMatrix = 1;
+            }
+            else if (FillerProcedurePresented[FillerMatrixCounter] == 2) 
+            {
+                ctx.fillStyle="orange";
+                ctx.fillRect(20, 20, 580, 580);
+				ctx.fillStyle="white";
+				ctx.fillRect(40, 40, 540, 540);
+                FillerPressCorrect = 'z';
+				FillerPressCorrect2 = 'Z';
+                FillerResponseMatrix = 1;
+            }
+            ctx.drawImage(OFNimgs[OFNcounter],((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+            FillerCategory = 'OF';
+            OFNcounter++;
+		}
+
+		setTimeout(FillercheckResponse, 1000);  
+	}
+    
+    function FillercheckResponse()
+	{
+		if (window.hasResponseFiller == 0 || FillerfeedbackType == 1) //check if a response has been made
+		{
+			Filleraccuracy = 0;
+            Fillerdata[FillerlogCounter++] = ["FillerRespITI:", FillerlogCounter, FillertrialCounter, FillerMatrixCounter, FillerrunCounter, FillerProcedurePresented[FillerMatrixCounter], FaceStimMatrix[FillerMatrixCounter], TrialType[FillerMatrixCounter], FillerPressCorrect, FillerResponseMatrix, keyPressed, Filleraccuracy, FillerrespTime, FillerfeedbackType, Filler_PRACCCount, FillerACCCount];
+			setTimeout(FillershowFeedback);
+			window.hasResponseFiller = -1; // set the response to not check for responses again
+		}
+		else // if they have already responded, go to the ITI
+		{
+			setTimeout(FillerBlank);
+		}
+	}
+    
+    function FillershowFeedback() // fb time-out fxn
+	{
+		window.hasResponseFiller = -1;
+		ctx.clearRect(0,0, canvas.width, canvas.height);
+		ctx.textBaseline="middle";
+		ctx.textAlign="center";
+		ctx.fillStyle="black";
+		ctx.font="75px Arial"; 
+		ctx.fillText("Respond quicker",(canvas.width / 2), (canvas.height / 2), 500); // 500 is to state limit of the canvas width
+		setTimeout(FillerBlank, 1000);
+	}
+    		
+	//////////////////////////////////////////////////////////////INSTRUCTIONS FOR MEMORY TASK //////////////////////////////////////////////////////////////
+	
+	var MemslideNum=0;
+	var MemmaxNum=5;
+	
+	//EVERYTHING HERE IS BASICALLY THE SAME THAT WAS CODED FOR THE LEARNING INSTRUCTIONS - ONLY DIFFERS BY WHAT THE ACTUAL INSTRUCTIONS ARE
+	function hideMemInstruct()
+	{
+		$("#Instructions").hide();
+		$("#Instructions1").hide();		
+	    $("#Instructions2").hide();
+		$("#Instructions3").hide();
+		$("#Instructions4").hide();
+		$("#Instructions5").hide();
+		$("#Mem_RedoInstructOne").hide();
+		$("#Mem_startTaskOne").hide();
+	}
+	
+    $("#Mem_startTaskOne").on('click', function(){
+		hideMemInstruct();
+		$("#InstructionsHeader").hide();
+		$("#ReadInstructions").hide();
+		$("#startMem").show();
+		$("#info").show();
+	});
+
+	$("#Mem_NextButton").on('click', function(){
+	    MemslideNum=MemslideNum+1;
+		Mem_moveShow(MemslideNum);
+	});
+
+	$("#MemstartInstruct").on('click', function(){
+		$("#MemstartInstruct").hide();
+		$("#Mem_NextButton").show();
+	    Mem_moveShow(MemslideNum);
+	});
+
+	$("#Mem_RedoInstructOne").on('click',function(){
+		hideMemInstruct();
+		$("#InstructionsHeader").show();
+		$("#ReadInstructions").show();
+		MemslideNum=MemslideNum-MemmaxNum;
+		Mem_moveShow(MemslideNum);
+	});
+		
+	function Mem_moveShow(MemslideNum)
+	{
+		if (MemslideNum==0) {
+		   $("#Instructions").html('Now you will be presented with 172 images of objects, split into 2 blocks lasting 8.6 minutes each. Using the key scale provided (which will stay on-screen throughout the task), please indicate whether you saw (Old) or did not see (New) the object image during the first portion of the experiment. You will have 2 seconds per image to respond, and you will use the h/H, j/J, k/K, and l/L keys.');
+		   $("#Instructions").show(); 	
+		} 
+		else if (MemslideNum==1)
+		{
+		   $("#Instructions1").html('Specifically, for an object image that you have definitely seen (Definitely Old), press h/H. For an object image that you have probably seen before (Probably Old), press j/J. For an object image that you have definitely not seen (Definitely New), press k/K. For an object image that you have probably not seen (Probably New), press l/L.');
+		   $("#Instructions1").show();				   
+		} 
+		else if (MemslideNum==2)
+		{
+		   $("#Instructions2").html('After answering whether you have seen the object image before, you will also be asked whether the particular object image was previously shown in a red or blue border, or a square or circle border. Using the key scale provided (which will stay on-screen throughout the task), you will have 1 second per question to press d/D or j/J.');
+		   $("#Instructions2").show();				   
+		}
+		else if (MemslideNum==3)
+		{
+		   $("#Instructions3").html('Specifically, for an object image that was presented with a RED or SQUARE border, press a/A. For an object image that was presented with a BLUE or CIRCLE border, press s/S.');
+		   $("#Instructions3").show();				   
+		} 		
+		else if (MemslideNum==4) 
+		{
+			$("#Instructions4").text('Please enlarge this window to encompass the entire computer screen and sit at a comfortable distance from the screen. Respond to each object image as quickly as possible while still being accurate according to your memory. Always press the a/A key with your LEFT middle finger, the s/S key with your LEFT index finger, the h/H key with your RIGHT index finger, the j/J key with your RIGHT middle finger, the k/K key with your RIGHT ring finger, and the l/L key with your RIGHT pinky finger.');
+			$("#Instructions4").show();
+		}
+		else if (MemslideNum==5)
+		{
+			$("#Instructions5").text('Please stay focused during the task. Once you are ready to start, press the button below.');
+			$("#Instructions5").show();		
+		}
+		
+		if (MemslideNum==0) 
+		{
+		   $("#Mem_NextButton").show(); 
+		} 
+		else if (MemslideNum < MemmaxNum) 
+		{ 
+		   $("#Mem_NextButton").show(); 
+		} 
+		else 
+		{
+		   $("#Mem_NextButton").hide();
+		   $("#Mem_startTaskOne").show();
+		   $("#Mem_RedoInstructOne").show();	   
+		} 
+	
+	}	
+	
+	//////////////////////////////////////////////////////////////MEMORY TASK //////////////////////////////////////////////////////////////
+	
+    var Mem_runNumber = 2; // there are 2 blocks in this task
+	var Mem_runCounter = -1; // i start at -1 because I add to the counter as soon as it is initialized.
+	var Mem_trialCounter = -1; // same reason
+	var Mem_trialNumber = 85; // 86 per block, but trial/matrix counter added to AFTER ITI does trialCounter < trialNumber
+	var Mem_respTime = []; // RT for later
+	var SourceMemColor_respTime = []; // RT for later
+	var SourceMemShape_respTime = []; // RT for later
+	var newLS_File = ["https://people.duke.edu/~cb383/HLset/stim/LSW/35.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/36.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/37.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/38.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/39.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/40.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/41.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/42.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/43.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/44.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/45.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/46.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/47.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/48.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/49.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/50.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/51.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/52.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/53.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/54.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/55.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/56.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/57.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/58.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/59.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/60.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/61.jpg", "https://people.duke.edu/~cb383/HLset/stim/LSW/62.jpg"];
+	var newLL_File = ["https://people.duke.edu/~cb383/HLset/stim/LLW/35.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/36.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/37.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/38.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/39.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/40.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/41.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/42.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/43.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/44.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/45.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/46.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/47.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/48.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/49.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/50.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/51.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/52.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/53.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/54.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/55.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/56.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/57.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/58.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/59.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/60.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/61.jpg", "https://people.duke.edu/~cb383/HLset/stim/LLW/62.jpg"];
+	var newNS_File = ["https://people.duke.edu/~cb383/HLset/stim/NSW/35.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/36.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/37.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/38.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/39.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/40.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/41.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/42.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/43.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/44.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/45.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/46.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/47.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/48.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/49.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/50.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/51.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/52.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/53.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/54.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/55.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/56.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/57.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/58.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/59.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/60.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/61.jpg", "https://people.duke.edu/~cb383/HLset/stim/NSW/62.jpg"];
+	var newNL_File = ["https://people.duke.edu/~cb383/HLset/stim/NLW/35.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/36.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/37.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/38.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/39.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/40.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/41.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/42.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/43.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/44.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/45.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/46.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/47.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/48.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/49.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/50.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/51.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/52.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/53.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/54.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/55.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/56.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/57.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/58.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/59.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/60.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/61.jpg", "https://people.duke.edu/~cb383/HLset/stim/NLW/62.jpg"];
+	var NewimgCount = 0;
+	var newLSimgs = new Array(11);
+    var newLLimgs = new Array(11);
+    var newNSimgs = new Array(11);
+    var newNLimgs = new Array(11);
+	var Mem_MatrixCounter = -1; // i use this counter so that I can keep all my face numbers in one matrix and still access that back to back
+    var newLScounter = 0;
+    var newLLcounter = 0;
+    var newNScounter = 0;
+    var newNLcounter = 0;
+	var oldStimcounter = -1;
+	var newStimcounter = -1;
+    var Mem_Category = [];
+    var FA = 0; // 1 means present for the rest of these
+    var Hit = 0;
+	var CR = 0;
+	var Miss = 0;
+    var Mem = 0; // 1 for new, 2 for old
+	var SourceMemColor_PressCorrect = 0;
+	var SourceMemColor_PressCorrect2 = 0;
+	var SourceMemColor_accuracy = 0;
+	var SourceMemColor_ResponseMatrix = 0;
+	var SourceMemShape_PressCorrect = 0;
+	var SourceMemShape_PressCorrect2 = 0;
+	var SourceMemShape_ResponseMatrix = 0;
+	var SourceMemShape_accuracy = 0;
+	var SourceMemColorFB = 0;
+	var SourceMemShapeFB = 0;
+    
+	var Mem_data=[['']]; //data logfile
+	var SourceMemColor_data=[['']]; //data logfile
+	var SourceMemShape_data=[['']]; //data logfile
+	var Mem_logCounter = 0; //the counter for each data entry
+	var SourceMemColor_logCounter = 0;
+	var SourceMemShape_logCounter = 0;
+	var Mem_runStart; //when a run starts
+	var Mem_Responset; // response onset
+	var Mem_StimOnset; // face onset
+	var Mem_TrialOnset; // Trial onset
+	var Mem_d1; // marker for runstart (d1.getTime - ScreenPulled)
+	var Mem_d2; // marker for stimOnset (d2.gettime - runstart)
+	var Mem_d4; // marker for responseonset (d4.gettime - runstart)
+	var Mem_d7; // marker for trial onset (d7.gettime - runstart)
+	var Mem_d8 = new Date();
+	var SourceMemColor_Onset;
+	var SourceMemShape_Onset;
+	var Mem_d9;
+	var Mem_d10;
+
+	window.hasResponseMem = -1;
+	window.hasResponseSourceMemColor = -1;
+	window.hasResponseSourceMemShape = -1;
+	
+	$("#startMem").click(function(){
+		$("#startMem").hide();
+		runMem(); // will run my experiment function
+	});
+	
+	$("#endBlockButton").click(function(){ // when a block is finished, this button would run another block
+		$("#endBlockButton").hide();
+		$("#info").hide();
+		Mem_runBlock();
+	});
+	
+	$("#Mem_resize").click(function(){ // to make sure that people are paying attention and don't have more than one task going, this fxn won't let a run start without a large enough window size
+		$("#Mem_resize").hide(); // once they click the button, the task will start only if the proper screen portions are in place
+		$("#info").hide();
+		$("#endBlockButton").hide();
+		Mem_checkSize();
+	});
+	
+	function loadImage3() // this is my load image function; have to load before I start drawing b/c can take time
+	{ 
+		if (NewimgCount < 11) 
+		{
+			newLSimgs[NewimgCount] = new Image();
+			newLSimgs[NewimgCount].src = newLS_File[NewimgCount];
+			newLSimgs[NewimgCount].onload = loadImage;
+            
+            newLLimgs[NewimgCount] = new Image();
+			newLLimgs[NewimgCount].src = newLL_File[NewimgCount];
+			newLLimgs[NewimgCount].onload = loadImage;
+            
+            newNSimgs[NewimgCount] = new Image();
+			newNSimgs[NewimgCount].src = newNS_File[NewimgCount];
+			newNSimgs[NewimgCount].onload = loadImage;
+            
+            newNLimgs[NewimgCount] = new Image();
+			newNLimgs[NewimgCount].src = newNL_File[NewimgCount];
+			newNLimgs[NewimgCount].onload = loadImage;
+			
+			NewimgCount++;
+		}
+	}
+    
+	//these numbers will represent which stimulus to draw from
+	var NewTrial = []; // 44 total new, so 22 per block
+	var OldTrial = []; // 128 total old, so 64 per block
+	var NewLS = []; // 11 a piece
+	var NewLL = [];
+	var NewNS = [];
+	var NewNL = [];
+	
+	var Block1 = [];
+    var Block2 = [];
+	var ObjStimMatrix = [];
+	var NewStimMatrix = [];
+	
+	for (i=0; i < 22; i++) 
+	{ 
+		NewTrial=NewTrial.concat(1);
+	}
+	
+	for (i=0; i < 64; i++) 
+	{
+	    OldTrial=OldTrial.concat(2);
+	}
+	
+	for (i=0; i < 11; i++)
+	{
+		NewLS=NewLS.concat(1);
+		NewLL=NewLL.concat(2);
+		NewNS=NewNS.concat(3);
+		NewNL=NewNL.concat(4);
+	}
+    
+	function runMemSetup()
+	{
+		Block1 = Block1.concat(NewTrial, OldTrial);
+		Block2 = Block2.concat(OldTrial, NewTrial);
+		NewStimMatrix = NewStimMatrix.concat(NewLL, NewLS, NewNL, NewNS);
+		shuffle(Block1);
+		shuffle(Block2);
+		shuffle(NewStimMatrix);
+		ObjStimMatrix = ObjStimMatrix.concat(Block1, Block2);
+	}
+    
+    //simple "runExp" to separate out the WHOLE experiment from individual blocks
+	function runMem()
+	{
+		Mem_logCounter = 0;
+		runMemSetup();
+		oldLScounter = 0; // resetting these old counters, so that I can reuse them to present the stimuli
+		oldLLcounter = 0;
+		oldNScounter = 0;
+		oldNLcounter = 0;
+		Mem_runBlock();
+	}
+	
+	function Mem_runBlock() // main task is separated into 2 blocks
+	{
+		Mem_runCounter++;
+		if (Mem_runCounter < Mem_runNumber)
+		{
+            $("#info").hide();
+			Mem_trialCounter = -1; // resets the trial counter in case there are multiple blocks
+            window.hasResponseMem = -1; // make sure no buttons have been recorded when the task hasn't even started
+			window.hasResponseSourceMemColor = -1;
+			window.hasResponseSourceMemShape = -1;
+			ctx.clearRect(0,0,canvas.width, canvas.height); // this is essentially like clearing the screen in matlab
+            Mem_checkSize();
+		}
+		else //when task is done, hide the HTML elements, bind together all the data, and show the post-test questionnaire
+		{
+            $("#info").hide();
+            $("#indicator2").hide();
+            $("#indicator3").hide();
+            $("#header").hide();
+            $("#MemTask", opener.window.document).val(Mem_data.join(";"));
+            $("#MemTask").val(Mem_data.join(";"));
+			$("#SourceMemColor", opener.window.document).val(SourceMemColor_data.join(";"));
+            $("#SourceMemColor").val(SourceMemColor_data.join(";"));
+			$("#SourceMemShape", opener.window.document).val(SourceMemShape_data.join(";"));
+            $("#SourceMemShape").val(SourceMemShape_data.join(";"));
+			$("#startPostTest").show();	
+			$("#screensize").show();
+		}
+	}
+	
+	// adapted from: http://stackoverflow.com/questions/3437786/get-the-size-of-the-screen-current-web-page-and-browser-window
+	function Mem_checkSize() 
+	{
+		var w = window.innerWidth;
+		var h = window.innerHeight;
+		if (w < 800 || h < 600)
+        {
+			$("#info").text('Your browser window is too small to display the images properly. Please increase the window size or your screen resolution.');
+  			$("#info").show();
+			$("#Mem_resize").show();
+		} 
+		else // if their screen is the proper size...
+		{
+            $("#info").hide();
+			$("#Mem_resize").hide();
+			Mem_countDown(3); // start the countdown for the experiment
+		}	
+	}
+	
+	function Mem_countDown(time) // the countdown is meant to "prepare" the subjects that the experiment is beginning
+	{
+		if (time > 0)
+		{
+			ctx.textBaseline="middle";
+			ctx.textAlign="center";
+			ctx.fillStyle="black";
+			ctx.font="200px Arial";
+			ctx.clearRect(0,0, canvas.width, canvas.height);
+			ctx.fillText("" + time, canvas.width / 2, canvas.height / 2);
+			setTimeout(function(){Mem_countDown(time - 1)},1000);
+		}
+		else
+		{
+            Mem_d1 = new Date();
+			Mem_runStart = Mem_d1.getTime() - ScreenPulled;
+			Mem_runTrial();
+		}
+	}
+	
+	//has to have a run trial function so that when all trials are done, can initiate end of the block
+	function Mem_runTrial()
+	{
+        window.hasResponseMem = -1;
+		window.hasResponseSourceMemColor = -1;
+		window.hasResponseSourceMemShape = -1;
+		SourceMemColorFB = 0;
+		SourceMemShapeFB = 0;
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+	
+        if (Mem_trialCounter < Mem_trialNumber)
+        {
+            Mem_trialCounter++;
+            Mem_MatrixCounter++;
+			if (ObjStimMatrix[Mem_MatrixCounter] == 1) //new trial
+			{
+				newStimcounter++;
+			}
+			else if (ObjStimMatrix[Mem_MatrixCounter] == 2) //old trial
+			{
+				oldStimcounter++;
+			}
+            $("#info").hide();
+			$("#indicator4").hide();
+			$("#indicator5").hide();
+			$("#indicator2").show();
+			$("#indicator3").show();
+			$("#header").html("Please indicate whether this image is:");
+			$("#header").show(); 
+            Mem = 0;
+            keyPressed = 0;
+            setTimeout(Mem_drawObject);
+        }
+        else // then you're done with the block!
+        {   
+            if (Mem_runCounter == 0) // so after run 1, show halfway thru; run 2, i.e., end, just show button
+            {
+                $("#info").text("You are halfway through this portion of the experiment! If you would like to take a break now, you can, but please take no more than 4 minutes.");
+                $("#info").show();
+            }
+            $("#indicator2").hide();
+            $("#indicator3").hide();
+			$("#indicator4").hide();
+			$("#indicator5").hide();
+            $("#header").hide();
+            $("#endBlockButton").show();
+        }
+	}
+ 
+	function Mem_drawObject()
+	{
+        window.hasResponseMem = 0;
+		window.hasResponseSourceMemColor = -1;
+		window.hasResponseSourceMemShape = -1;
+        Mem_d2 = new Date();
+        Mem_StimOnset = Mem_d2.getTime() - Mem_runStart;
+		if (ObjStimMatrix[Mem_MatrixCounter] == 1) // New Trial
+		{
+			if (NewStimMatrix[newStimcounter] == 1)
+			{
+				ctx.drawImage(newLSimgs[newLScounter], ((canvas.width/2) - 250), ((canvas.height/2) - 150), 500, 300); // width, height. half of height & width to present in center of screen
+				Mem_Category = 'NS';
+				newLScounter++;
+			}
+			else if (NewStimMatrix[newStimcounter] == 2)
+			{
+				ctx.drawImage(newLLimgs[newLLcounter], ((canvas.width/2) - 250), ((canvas.height/2) - 150), 500, 300);
+				Mem_Category = 'NL';
+				newLLcounter++;
+			}
+			else if (NewStimMatrix[newStimcounter] == 3)
+			{
+				ctx.drawImage(newNSimgs[newNScounter], ((canvas.width/2) - 250), ((canvas.height/2) - 150), 500, 300);
+				Mem_Category = 'MS';
+				newNScounter++;
+			}
+			else if (NewStimMatrix[newStimcounter] == 4)
+			{
+				ctx.drawImage(newNLimgs[newNLcounter], ((canvas.width/2) - 250), ((canvas.height/2) - 150), 500, 300);
+				Mem_Category = 'ML';
+				newNLcounter++;
+			}
+			Mem = 1;
+		}
+		else if (ObjStimMatrix[Mem_MatrixCounter] == 2) // Old Trials
+		{
+			if (StimSequence[oldStimcounter] == 1 || StimSequence[oldStimcounter] == 2 || StimSequence[oldStimcounter] == 3 || StimSequence[oldStimcounter] == 4)
+            {
+                ctx.drawImage(oldLL_imgs[oldLLcounter], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				Mem_Category = 'NL';
+				oldLLcounter++;
+            }
+            else if (StimSequence[oldStimcounter] == 5 || StimSequence[oldStimcounter] == 6 || StimSequence[oldStimcounter] == 7 || StimSequence[oldStimcounter] == 8)
+            {
+                ctx.drawImage(oldLS_imgs[oldLScounter], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				Mem_Category = 'NS';
+				oldLScounter++;
+            }
+            else if (StimSequence[oldStimcounter] == 9 || StimSequence[oldStimcounter] == 10 || StimSequence[oldStimcounter] == 11 || StimSequence[oldStimcounter] == 12)
+            {
+                ctx.drawImage(oldNL_imgs[oldNLcounter], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				Mem_Category = 'ML';
+				oldNLcounter++;
+            }
+			else if (StimSequence[oldStimcounter] == 13 || StimSequence[oldStimcounter] == 14 || StimSequence[oldStimcounter] == 15 || StimSequence[oldStimcounter] == 16)
+            {
+                ctx.drawImage(oldNS_imgs[oldNScounter],((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				Mem_Category = 'MS';
+				oldNScounter++;
+            }
+			Mem = 2;
+		}
+		
+        setTimeout(Mem_checkResponse, 2000);
+	}
+	
+    function Mem_checkResponse()
+	{
+       window.hasResponseSourceMemColor = -1;
+	   window.hasResponseSourceMemShape = -1;
+	   if (window.hasResponseMem == 0)
+       {
+            window.hasResponseMem = -1;
+            Hit = 0;
+            Miss = 0;
+            FA = 0;
+            CR = 0;
+            Mem_data[Mem_logCounter++] = ["MemRespITI:", 6, Mem_logCounter, Mem_trialCounter, Mem_MatrixCounter, Mem_runCounter, Mem_Category, ObjStimMatrix[Mem_MatrixCounter], StimSequence[oldStimcounter], NewStimMatrix[newStimcounter], oldLLcounter, oldLScounter, oldNLcounter, oldNScounter, newLScounter, newLLcounter, newNScounter, newNLcounter, keyPressed, Mem, Mem_respTime, Hit, FA, CR, Miss];
+            setTimeout(MemshowFeedback);
+       }
+       else if (window.hasResponseMem == -1)
+       {
+            setTimeout(SourceMemShape);
+       }
+	}
+	
+	function MemshowFeedback() // fb time-out fxn
+	{
+        window.hasResponseMem = -1;
+		SourceMemShapeFB = 1;
+		$("#indicator2").hide();
+		$("#indicator3").hide();
+		$("#header").hide();
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        ctx.textBaseline="middle";
+        ctx.textAlign="center";
+        ctx.fillStyle="black";
+        ctx.font="75px Arial"; 
+        ctx.fillText("Respond faster",(canvas.width / 2), (canvas.height / 2), 500); // 500 is to state limit of the canvas width
+        setTimeout(SourceMemShape, 1000);
+	}
+	
+	function SourceMemColor()
+	{
+		window.hasResponseSourceMemColor = 0;
+		window.hasResponseSourceMemShape = -1;
+		window.hasResponseMem = -1;
+		
+		if (SourceMemColorFB == 1)
+		{
+			ctx.clearRect(0,0, canvas.width, canvas.height);
+			if (ObjStimMatrix[Mem_MatrixCounter] == 1) // New Trial
+			{
+				if (NewStimMatrix[newStimcounter] == 1)
+				{
+					ctx.drawImage(newLSimgs[newLScounter-1], ((canvas.width/2) - 250), ((canvas.height/2) - 150), 500, 300); // width, height. half of height & width to present in center of screen
+				}
+				else if (NewStimMatrix[newStimcounter] == 2)
+				{
+					ctx.drawImage(newLLimgs[newLLcounter-1], ((canvas.width/2) - 250), ((canvas.height/2) - 150), 500, 300);
+				}
+				else if (NewStimMatrix[newStimcounter] == 3)
+				{
+					ctx.drawImage(newNSimgs[newNScounter-1], ((canvas.width/2) - 250), ((canvas.height/2) - 150), 500, 300);
+				}
+				else if (NewStimMatrix[newStimcounter] == 4)
+				{
+					ctx.drawImage(newNLimgs[newNLcounter-1], ((canvas.width/2) - 250), ((canvas.height/2) - 150), 500, 300);
+				}
+			}
+			else if (ObjStimMatrix[Mem_MatrixCounter] == 2) // Old Trials
+			{
+				if (StimSequence[oldStimcounter] == 1 || StimSequence[oldStimcounter] == 2 || StimSequence[oldStimcounter] == 3 || StimSequence[oldStimcounter] == 4)
+				{
+					ctx.drawImage(oldLL_imgs[oldLLcounter-1], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				}
+				else if (StimSequence[oldStimcounter] == 5 || StimSequence[oldStimcounter] == 6 || StimSequence[oldStimcounter] == 7 || StimSequence[oldStimcounter] == 8)
+				{
+					ctx.drawImage(oldLS_imgs[oldLScounter-1], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				}
+				else if (StimSequence[oldStimcounter] == 9 || StimSequence[oldStimcounter] == 10 || StimSequence[oldStimcounter] == 11 || StimSequence[oldStimcounter] == 12)
+				{
+					ctx.drawImage(oldNL_imgs[oldNLcounter-1], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				}
+				else if (StimSequence[oldStimcounter] == 13 || StimSequence[oldStimcounter] == 14 || StimSequence[oldStimcounter] == 15 || StimSequence[oldStimcounter] == 16)
+				{
+					ctx.drawImage(oldNS_imgs[oldNScounter-1],((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				}
+			}
+		}
+		
+		$("#header").html("Please indicate whether this image was shown with a:");
+		$("#header").show();
+		$("#indicator4").html('a/A = <text style="color:red">Red <text style="color:black"> Border');
+        $("#indicator4").show();
+		$("#indicator5").html('s/S = <text style="color:blue">Blue <text style="color:black"> Border');
+        $("#indicator5").show();
+		Mem_d9 = new Date();
+        SourceMemColor_Onset = Mem_d9.getTime() - Mem_runStart;
+		if (ObjStimMatrix[Mem_MatrixCounter] == 2) // Old Trials
+		{
+			if (StimSequence[oldStimcounter] == 1 || StimSequence[oldStimcounter] == 5 || StimSequence[oldStimcounter] == 9 || StimSequence[oldStimcounter] == 13 || StimSequence[oldStimcounter] == 2 || StimSequence[oldStimcounter] == 6 || StimSequence[oldStimcounter] == 10 || StimSequence[oldStimcounter] == 14)
+			{
+				SourceMemColor_PressCorrect = 'a';
+				SourceMemColor_PressCorrect2 = 'A';
+				SourceMemColor_ResponseMatrix = 1;
+			}
+			else if (StimSequence[oldStimcounter] == 3 || StimSequence[oldStimcounter] == 7 || StimSequence[oldStimcounter] == 11 || StimSequence[oldStimcounter] == 15 || StimSequence[oldStimcounter] == 4 || StimSequence[oldStimcounter] == 8 || StimSequence[oldStimcounter] == 12 || StimSequence[oldStimcounter] == 16)
+			{
+				SourceMemColor_PressCorrect = 's';
+				SourceMemColor_PressCorrect2 = 'S';
+				SourceMemColor_ResponseMatrix = 2;
+			}
+		}
+		else // no source memory, these trials don't matter
+		{
+			SourceMemColor_accuracy = 0;
+			SourceMemColor_PressCorrect = 0;
+			SourceMemColor_PressCorrect2 = 0;
+			SourceMemColor_ResponseMatrix = 0;
+		}
+		
+		setTimeout(SourceMemColor_checkResponse,2000);
+	}
+	
+	function SourceMemColor_checkResponse()
+	{
+		window.hasResponseSourceMemShape = -1;
+		window.hasResponseMem = -1;
+		if (window.hasResponseSourceMemColor == 0)
+		{
+            window.hasResponseSourceMemColor = -1;
+			SourceMemColor_accuracy = 0;
+            SourceMemColor_data[SourceMemColor_logCounter++] = ["SourceMemColorRespITI:", 6, SourceMemColor_logCounter, Mem_trialCounter, Mem_MatrixCounter, Mem_runCounter, Mem_Category, ObjStimMatrix[Mem_MatrixCounter], StimSequence[oldStimcounter], NewStimMatrix[newStimcounter], oldLLcounter, oldLScounter, oldNLcounter, oldNScounter, newLScounter, newLLcounter, newNScounter, newNLcounter, keyPressed, SourceMemColor_PressCorrect, SourceMemColor_accuracy, SourceMemColor_respTime, SourceMemColor_ResponseMatrix];
+            setTimeout(SourceMemColorshowFeedback);
+       }
+       else if (window.hasResponseSourceMemColor == -1)
+       {
+            setTimeout(Mem_runTrial);
+       }
+	}
+	
+	function SourceMemColorshowFeedback() // fb time-out fxn
+	{
+        window.hasResponseSourceMemColor = -1;
+		$("#indicator4").hide();
+		$("#indicator5").hide();
+		$("#header").hide();
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        ctx.textBaseline="middle";
+        ctx.textAlign="center";
+        ctx.fillStyle="black";
+        ctx.font="75px Arial"; 
+        ctx.fillText("Respond faster",(canvas.width / 2), (canvas.height / 2), 500); // 500 is to state limit of the canvas width
+        setTimeout(Mem_runTrial, 1000);
+	}
+	
+	function SourceMemShape()
+	{
+		window.hasResponseSourceMemShape = 0;
+		window.hasResponseSourceMemColor = -1;
+		window.hasResponseMem = -1;
+		
+		if (SourceMemShapeFB == 1)
+		{
+			ctx.clearRect(0,0, canvas.width, canvas.height);
+			if (ObjStimMatrix[Mem_MatrixCounter] == 1) // New Trial
+			{
+				if (NewStimMatrix[newStimcounter] == 1)
+				{
+					ctx.drawImage(newLSimgs[newLScounter-1], ((canvas.width/2) - 250), ((canvas.height/2) - 150), 500, 300); // width, height. half of height & width to present in center of screen
+				}
+				else if (NewStimMatrix[newStimcounter] == 2)
+				{
+					ctx.drawImage(newLLimgs[newLLcounter-1], ((canvas.width/2) - 250), ((canvas.height/2) - 150), 500, 300);
+				}
+				else if (NewStimMatrix[newStimcounter] == 3)
+				{
+					ctx.drawImage(newNSimgs[newNScounter-1], ((canvas.width/2) - 250), ((canvas.height/2) - 150), 500, 300);
+				}
+				else if (NewStimMatrix[newStimcounter] == 4)
+				{
+					ctx.drawImage(newNLimgs[newNLcounter-1], ((canvas.width/2) - 250), ((canvas.height/2) - 150), 500, 300);
+				}
+			}
+			else if (ObjStimMatrix[Mem_MatrixCounter] == 2) // Old Trials
+			{
+				if (StimSequence[oldStimcounter] == 1 || StimSequence[oldStimcounter] == 2 || StimSequence[oldStimcounter] == 3 || StimSequence[oldStimcounter] == 4)
+				{
+					ctx.drawImage(oldLL_imgs[oldLLcounter-1], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				}
+				else if (StimSequence[oldStimcounter] == 5 || StimSequence[oldStimcounter] == 6 || StimSequence[oldStimcounter] == 7 || StimSequence[oldStimcounter] == 8)
+				{
+					ctx.drawImage(oldLS_imgs[oldLScounter-1], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				}
+				else if (StimSequence[oldStimcounter] == 9 || StimSequence[oldStimcounter] == 10 || StimSequence[oldStimcounter] == 11 || StimSequence[oldStimcounter] == 12)
+				{
+					ctx.drawImage(oldNL_imgs[oldNLcounter-1], ((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				}
+				else if (StimSequence[oldStimcounter] == 13 || StimSequence[oldStimcounter] == 14 || StimSequence[oldStimcounter] == 15 || StimSequence[oldStimcounter] == 16)
+				{
+					ctx.drawImage(oldNS_imgs[oldNScounter-1],((canvas.width / 2) - 250), ((canvas.height / 2)-150),500,300);
+				}
+			}
+		}
+		
+		$("#indicator2").hide();
+		$("#indicator3").hide();
+		$("#header").html("Please indicate whether this image was shown with a:");
+		$("#header").show();
+		$("#indicator4").html("a/A = Square Border");
+        $("#indicator4").show();
+		$("#indicator5").html("s/S = Circle Border");
+        $("#indicator5").show();
+		Mem_d10 = new Date();
+        SourceMemShape_Onset = Mem_d10.getTime() - Mem_runStart;
+		
+		if (ObjStimMatrix[Mem_MatrixCounter] == 2) // Old Trials
+		{
+			if (StimSequence[oldStimcounter] == 1 || StimSequence[oldStimcounter] == 5 || StimSequence[oldStimcounter] == 9 || StimSequence[oldStimcounter] == 13 || StimSequence[oldStimcounter] == 3 || StimSequence[oldStimcounter] == 7 || StimSequence[oldStimcounter] == 11 || StimSequence[oldStimcounter] == 15)
+			{
+				SourceMemShape_PressCorrect = 'a';
+				SourceMemShape_PressCorrect2 = 'A';
+				SourceMemShape_ResponseMatrix = 1;
+			}
+			else if (StimSequence[oldStimcounter] == 2 || StimSequence[oldStimcounter] == 6 || StimSequence[oldStimcounter] == 10 || StimSequence[oldStimcounter] == 14 || StimSequence[oldStimcounter] == 4 || StimSequence[oldStimcounter] == 8 || StimSequence[oldStimcounter] == 12 || StimSequence[oldStimcounter] == 16)
+			{
+				SourceMemShape_PressCorrect = 's';
+				SourceMemShape_PressCorrect2 = 'S';
+				SourceMemShape_ResponseMatrix = 2;			
+			}
+		}
+		else
+		{
+			SourceMemShape_accuracy = 0;
+			SourceMemShape_PressCorrect = 0;
+			SourceMemShape_PressCorrect2 = 0;
+			SourceMemShape_ResponseMatrix = 0;
+		}
+		
+		setTimeout(SourceMemShape_checkResponse,2000);
+	}
+	
+	function SourceMemShape_checkResponse()
+	{
+		window.hasResponseSourceMemColor = -1;
+		window.hasResponseMem = -1;
+		if (window.hasResponseSourceMemShape == 0)
+		{
+            window.hasResponseSourceMemShape = -1;
+			SourceMemShape_accuracy = 0;
+            SourceMemShape_data[SourceMemShape_logCounter++] = ["SourceMemShapeRespITI:", 6, SourceMemShape_logCounter, Mem_trialCounter, Mem_MatrixCounter, Mem_runCounter, Mem_Category, ObjStimMatrix[Mem_MatrixCounter], StimSequence[oldStimcounter], NewStimMatrix[newStimcounter], oldLLcounter, oldLScounter, oldNLcounter, oldNScounter, newLScounter, newLLcounter, newNScounter, newNLcounter, keyPressed, SourceMemShape_PressCorrect, SourceMemShape_accuracy, SourceMemShape_respTime, SourceMemShape_ResponseMatrix];
+            setTimeout(SourceMemShapeshowFeedback);
+		}
+       else if (window.hasResponseSourceMemShape == -1)
+       {
+            setTimeout(SourceMemColor);
+       }
+	}
+	
+	function SourceMemShapeshowFeedback() // fb time-out fxn
+	{
+        window.hasResponseSourceMemShape = -1;
+		SourceMemColorFB = 1;
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+		$("#indicator4").hide();
+		$("#indicator5").hide();
+		$("#header").hide();
+        ctx.textBaseline="middle";
+        ctx.textAlign="center";
+        ctx.fillStyle="black";
+        ctx.font="75px Arial"; 
+        ctx.fillText("Respond faster",(canvas.width / 2), (canvas.height / 2), 500); // 500 is to state limit of the canvas width
+        setTimeout(SourceMemColor, 1000);
+	}
+	
+   //////////////////////////////////////////////////////////////POST TEST QUESTIONNAIRE CODE //////////////////////////////////////////////////////////////
+	
+	$("#startPostTest").click(function() 
+    {
+        $("#startPostTest").hide();
+		$("#screensize").hide(); // hide the button & warning to make the screen larger
+		$("#info").text('Your worker ID is:');
+        $("#info").show();
+        $("#instruction").text($("#workerId").val()); // tells them their worker ID to input into the questionnaire
+		$("#instruction").show();
+        $("#demoCode").show(); // this is the blank that the need to input the code into
+        $("#returnButton").show(); // this is the button they press to submit the code
+        if (iframeSupported = 1) // if iframes are supported
+		{
+			$("#PostTestQ").show(); // show the post-test questionnaire
+		}
+		else
+		{
+			$("#iframewarning").show(); //otherwise show a warning that gives them the link to the post-test
+		}
+	});
+	
+	var demoCodeArray = ['HLtask2001']; // this code is given at the end of the Qualtrics questionnaire
+    
+    $("#returnButton").click(function(){
+		var demoVCode = document.getElementById('demoCode').value; // if the value they entered is the post-test code
+		if (jQuery.inArray(demoVCode, demoCodeArray)!=-1){  
+			document.getElementById("mturk_form").submit(); // submit the data to our server
+            opener.updateMainMenu(2); // update the main menu page with the debriefing
+		}else{
+			alert("Please fill out the post-test questionnaire! If you already have and the code isn't working, make sure the characters match exactly & you have no extra spaces!"); // if they try submitting without inputting the post-test questionnaire code
+		}
+	});
+	
+	var iframeSupported = [];
+	
+    function elemSupportsEvent(elem,e) // testing whether iframes can load in the JS browser
+	{
+		var f = document.createElement(elem);
+		if (e in f)
+		{
+			iframeSupported = 1;
+			console.log(elem + ' supports the '+ e + ' event');
+			return true;
+		}
+		console.log(elem + ' doesn\'t support the '+ e + ' event');
+		return false;
+	}
+	elemSupportsEvent('iframe','onload');
+		
+		
+	
+});	
+
+</script>
+</head>
+
+<body>
+
+<h2 id="InstructionsHeader" style="font-family:arial;font-size:30px">Instructions:</h2>
+<p id="ReadInstructions" style="font-family:arial;font-weight:bold; font-size:24px">Please read these instructions carefully before you begin the experiment.</p>
+<p id="Instructions" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="ObjectLabel" style="font-family:arial;color:black;font-size:22px;position:relative"></p>
+<p id="Instructions1" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="Instructions2" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="Instructions3" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="Instructions4" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="Instructions5" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="Instructions6" style="font-family:arial;color:black;font-size:22px"></p>
+<img id="Procedure" src="https://people.duke.edu/~cb383/HLtask/procedure6.jpg" style="display:none" height="200" width="400"> 
+<img id="RS" src="https://people.duke.edu/~cb383/HLset/stim/RS1.jpg" style="display:none" height="300" width="500">
+<img id="RC" src="https://people.duke.edu/~cb383/HLset/stim/RC1.jpg" style="display:none" height="300" width="500">
+<img id="BS" src="https://people.duke.edu/~cb383/HLset/stim/BS1.jpg" style="display:none" height="300" width="500">
+<img id="BC" src="https://people.duke.edu/~cb383/HLset/stim/BC1.jpg" style="display:none" height="300" width="500">
+<img id="OF" src="https://people.duke.edu/~cb383/HLtask/instructions/OFN_9.jpg" style="display:none" height="350" width="280">
+<img id="OM" src="https://people.duke.edu/~cb383/HLtask/instructions/OMN_4.jpg" style="display:none" height="350" width="280">
+<img id="YF" src="https://people.duke.edu/~cb383/HLtask/instructions/YFN_1.jpg" style="display:none" height="350" width="280">
+<img id="YM" src="https://people.duke.edu/~cb383/HLtask/instructions/YMN_18.jpg" style="display:none" height="350" width="280">
+<button id="startBlockOne" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Click to exit instructions and start the task.</button>
+<p><button id="NextButton" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Next</button></p>
+<p><button id="Filler_NextButton" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Next</button></p>
+<button id="startInstruct" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Next</button>
+<button id="RedoInstructOne" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Read through the instructions again.</button>
+<button id="FillerStartInstruct" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Next</button>
+<button id="startFillertask" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Click to exit instructions and start task.</button>
+<button id="Filler_RedoInstructOne" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Read through the instructions again.</button>
+<button id="Mem_startTaskOne" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Click to exit instructions and start the task.</button>
+<p><button id="Mem_NextButton" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Next</button></p>
+<button id="MemstartInstruct" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Next</button>
+<button id="Mem_RedoInstructOne" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Read through the instructions again.</button>
+
+	<table>
+		<tr>
+			<td>
+				<!--All of these are buttons or page elements 'text-align' and 'align' do the same thing, but align is for older browsers-->
+                <p id="indicator" style="font-family: Arial; color: black; font-size: 50px; text-align:center; align: center"></p>
+                <p><button id="endLearning" style="font-family: Arial; color: black; font-size: 20px; text-align:center; align: center">This task has ended. Click this button to continue onto the next task.</button></p>
+                <p><button id="endFiller" style="font-family: Arial; color: black; font-size: 20px; text-align:center; align: center">This task has ended. Click this button to continue onto the next task.</button></p>
+                <p id="header" style="font-family: Arial; color: black; font-size: 33px; text-align:center; align: center"></p>
+                <p id="indicator2" style="font-family: Arial; color: black; font-size: 30px; text-align:center; align: center"> h/H = Definitely Old; j/J = Probably Old</p>
+				<p id="indicator3" style="font-family: Arial; color: black; font-size: 30px; text-align:center; align: center"> k/K = Definitely New; l/L = Probably New</p>
+				<p id="indicator4" style="font-family: Arial; color: black; font-size: 30px; text-align:center; align: center"></p>
+				<p id="indicator5" style="font-family: Arial; color: black; font-size: 30px; text-align:center; align: center"></p>
+				<p id="info" style="font-family: Arial; color: black; font-size: 25px; text-align: center; align: center">Once you're ready to begin, press the button below.</p>
+				<p id="instruction" style="font-family: arial; font-size: 40px"></p>
+                <p id="iframewarning" style="font-family: arial; font-size: 40px">Your browser does not support iframes. Fill out the post-test (https://duke.qualtrics.com/jfe/form/SV_1YegaAsLrTw4PU9) in a new tab. Then paste the code you receive into the blank space below.</p>
+				<iframe id="PostTestQ" src="https://duke.qualtrics.com/jfe/form/SV_1YegaAsLrTw4PU9" width="800" height ="600">
+                    <p>Your browser does not support iframes. Fill out the post-test here: https://duke.qualtrics.com/jfe/form/SV_1YegaAsLrTw4PU9. Then paste the code you get at the end in the blank space below.</p>
+                </iframe>
+                <p><input id="demoCode" name="demoCode" value=""></p>
+                <p><button id="returnButton" style="font-family:arial;color:black;font-size:14px;">Submit Post-Test Questionnaire Code. Please look at the Main Menu page after pressing this button.</button></p> 
+				<p><button id="endBlockButton" style="font-family: Arial; color: black; text-align:center; align: center">You may take a short break. Click this button when you're ready to continue the task.</button></p>
+				<p><button id="resize" style="font-family: Arial; color: black; text-align:center; align: center">Try resizing again.</button></p>
+				<p><button id="Fillerresize" style="font-family: Arial; color: black; text-align:center; align: center">Try resizing again.</button></p>
+				<p><button id="Mem_resize" style="font-family: Arial; color: black; text-align:center; align: center">Try resizing again.</button></p>
+				<p><button id ="startLearningTask" style="font-family: Arial; color: black; text-align:center; align:center">Start the task.</button></p>
+                <p><button id="startFiller" style="font-family: Arial; color: black; text-align:center; align:center">Start the practice.</button> </p>
+				<p><button id="startMain" style="font-family: Arial; color: black; text-align:center; align:center">Start the task.</button> </p>
+				<p><button id="startMem" style="font-family: Arial; color: black; text-align:center; align:center">Start the task.</button></p>
+				<!-- the style here was so that the canvas wouldn't get selected by the left click-->
+				
+				<form id="mturk_form" method="POST" action="http://152.3.33.45/AMTSubmit/dataHandler.php">
+				
+					<input type="hidden" id="ExpName" name="ExpName" value="HLCM_Obj">
+					<input type="hidden" id="assignmentId" name="assignmentId" value="">
+					<input type="hidden" id="workerId" name="workerId" value="">
+					<input type="hidden" id="hitId" name="hitId" value="">
+					<input type="hidden" id="RTs", name="RTs", value=""> 
+                    <input type="hidden" id="MemTask", name="MemTask", value="">
+					<input type="hidden" id="SourceMemColor", name="SourceMemColor", value="">
+					<input type="hidden" id="SourceMemShape", name="SourceMemShape", value="">
+                    <input type="hidden" id="Filler", name="Filler", value="">      
+					<input id="submitButton" style="font-family: Arial; color: black; font-size: 36px; text-align:center; align: center" type="submit" name="Finish" value="Submit">
+					
+				</form>
+				
+                <p id="screensize" style="font-family: arial; font-size: 40px">Please make sure that your screen is enlarged before clicking the button below.</p>
+				<p><button id="startPostTest" style="font-family: arial; color: black; font-size: 24px;">Please click this button to fill out our post-test questionnaire.</button></p>
+				<canvas id="myCanvas" width="620" height="620" style="user-select: none; -webkit-user-select:none; -moz-user-select:none"></canvas>
+
+			</td>
+		</tr>
+	</table>
+</body>
+</html>
+</body>
+</html>
