@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+
+<link rel="stylesheet" href="HLtask.css" type="text/css" charset="utf-8">
+<script type="text/javascript" src="jquery-3.1.1.js"> </script>
+<script type="text/javascript" src="shuffle.js"></script>
+<script type="text/javascript">
+
+function gup(name,tmpURL) // function specifically for mTurk
+{
+	var regexS = "[\\?&]"+name+"=([^&#]*)";
+	var regex = new RegExp(regexS);
+	var results = regex.exec(tmpURL);
+	if (results == null)
+	{
+		return "";
+	}
+	
+	else
+	{
+		return results[1];
+	}
+}
+
+$(document).ready(function(){    
+    //////////////////////////////////////////////////////////////REUSABLE FXNS //////////////////////////////////////////////////////////////
+	
+	//to be able to submit the data from the last trial, we need to get the assignment ID, etc. from the Main Menu file
+	document.getElementById('assignmentId').value = gup('assignmentId', opener.document.referrer);
+	document.getElementById('hitId').value = gup('hitId', opener.document.referrer);
+	document.getElementById('workerId').value = gup('workerId', opener.document.referrer);
+    document.getElementById('RTs').value = window.opener.document.getElementById('RTs').value;
+    document.getElementById('Filler').value = window.opener.document.getElementById('Filler').value;
+	    
+	//disabling mouse clicks in the task
+	//from: http://stackoverflow.com/questions/8595909/how-to-completley-disable-any-mouse-click
+	var event1 = $(document).click(function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+	});
+
+	//from: http://stackoverflow.com/questions/8595909/how-to-completley-disable-any-mouse-click
+    //disable right click
+    $(document).bind('contextmenu', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+    });
+	
+	//Stops backspace presses (8) and spaces (32);
+	//from: http://stackoverflow.com/questions/1495219/how-can-i-prevent-the-backspace-key-from-navigating-back
+  	$(function(){
+  	
+	var rx = /INPUT|SELECT|TEXTAREA/i;
+  	$(document).bind("keydown keypress", function(e){
+		if( e.which == 32 ||e.which == 8 )
+		{ // 8 == backspace
+			if(!rx.test(e.target.tagName) || e.target.disabled || e.target.readOnly )
+			{
+  				e.preventDefault();
+			}
+  		}
+  	});
+  	});
+    
+    //////////////////////////////////////////////////////////////POST TEST QUESTIONNAIRE CODE //////////////////////////////////////////////////////////////
+	
+	$("#startPostTest").click(function() 
+    {
+        $("#startPostTest").hide();
+		$("#screensize").hide(); // hide the button & warning to make the screen larger
+		$("#info").text('Your worker ID is:');
+        $("#info").show();
+        $("#instruction").text($("#workerId").val()); // tells them their worker ID to input into the questionnaire
+		$("#instruction").show();
+        $("#demoCode").show(); // this is the blank that the need to input the code into
+        $("#returnButton").show(); // this is the button they press to submit the code
+        if (iframeSupported = 1) // if iframes are supported
+		{
+			$("#PostTestQ").show(); // show the post-test questionnaire
+		}
+		else
+		{
+			$("#iframewarning").show(); //otherwise show a warning that gives them the link to the post-test
+		}
+	});
+	
+	var demoCodeArray = ['HLtask2001']; // this code is given at the end of the Qualtrics questionnaire
+    
+    $("#returnButton").click(function(){
+		var demoVCode = document.getElementById('demoCode').value; // if the value they entered is the post-test code
+		if (jQuery.inArray(demoVCode, demoCodeArray)!=-1){  
+			document.getElementById("mturk_form").submit(); // submit the data to our server
+            opener.updateMainMenu(4); // update the main menu page with the debriefing
+		}else{
+			alert("Please fill out the post-test questionnaire! If you already have and the code isn't working, make sure the characters match exactly & you have no extra spaces!"); // if they try submitting without inputting the post-test questionnaire code
+		}
+	});
+	
+	var iframeSupported = [];
+	
+    function elemSupportsEvent(elem,e) // testing whether iframes can load in the JS browser
+	{
+		var f = document.createElement(elem);
+		if (e in f)
+		{
+			iframeSupported = 1;
+			console.log(elem + ' supports the '+ e + ' event');
+			return true;
+		}
+		console.log(elem + ' doesn\'t support the '+ e + ' event');
+		return false;
+	}
+	elemSupportsEvent('iframe','onload');
+
+//////////////////////////////////////////////////////////////INSTRUCTIONS FOR TASK ONE //////////////////////////////////////////////////////////////
+	
+	var TOslideNum=0;
+	var TOmaxNum=2;
+	
+	hideAllInstruct();
+	$("#InstructionsHeader").show();
+	$("#ReadInstructions").show();
+	$("#startInstruct").show();
+	
+	function hideAllInstruct()
+	{
+		$("#startTaskOne").hide();
+		$("#NextButton").hide();
+		$("#startInstruct").hide();
+		$("#InstructionsHeader").hide();
+		$("#ReadInstructions").hide();
+		$("#RedoInstructOne").hide();
+		$("#Instructions").hide();
+		$("#Instructions1").hide();		
+	    $("#Instructions2").hide();
+	}
+	
+    $("#startTaskOne").on('click', function(){
+		hideAllInstruct();
+		$("#startButton").show(); //start button appears when the task is called
+		$("#info").show(); // brief instructions
+	});
+
+	$("#NextButton").on('click', function(){
+	    TOslideNum=TOslideNum+1;
+		moveShow(TOslideNum);
+	});
+
+	$("#startInstruct").on('click', function(){
+		$("#startInstruct").hide()
+		$("#NextButton").show()
+	    moveShow(TOslideNum);
+	});
+
+	$("#RedoInstructOne").on('click',function(){
+		hideAllInstruct();
+		$("#InstructionsHeader").show();
+		$("#ReadInstructions").show();
+		TOslideNum=TOslideNum-TOmaxNum;
+		moveShow(TOslideNum);
+	});
+		
+	function moveShow(TOslideNum)
+	{
+		if (TOslideNum==0) {
+		   $("#Instructions").html('Now you will be presented with 160 images of faces, split into 2 blocks lasting about 2.67 minutes each. Using the key scale provided (which will stay on-screen throughout the task), please indicate whether you saw (Old) or did not see (New) the face image during the first portion of the experiment. You will have 2 seconds per image to respond, and you will use the a/A, s/S, k/K, and l/L keys.');
+		   $("#Instructions").show() 	
+		} 
+		else if (TOslideNum==1)
+		{
+			$("#Instructions1").text('Please enlarge this window to encompass the entire computer screen and sit at a comfortable distance from the screen. Respond to each object image as quickly as possible while still being accurate according to your memory. Always press the s/S key with your LEFT index finger, the a/A key with your LEFT middle finger, the l/L key with your RIGHT middle finger, and the k/K key with your RIGHT index finger.');
+			$("#Instructions1").show();	   
+		} 
+		else if (TOslideNum==2) 
+		{
+			$("#Instructions2").text('Please stay focused during the task. Once you are ready to start, press the button below.');
+			$("#Instructions2").show();
+		}
+		
+		if (TOslideNum==0) 
+		{
+		   $("#NextButton").show(); 
+		} 
+		else if (TOslideNum < TOmaxNum) 
+		{ 
+		   $("#NextButton").show(); 
+		} 
+		else 
+		{
+		   $("#NextButton").hide();
+		   $("#startTaskOne").show();
+		   $("#RedoInstructOne").show();	   
+		} 
+	
+	}	
+	
+	//////////////////////////////////////////////////////////////MEMORY TASK //////////////////////////////////////////////////////////////
+	
+	$("#Mem1").hide();
+    $("#RTs").hide();
+    $("#Filler").hide();
+    $("#mturk_form").hide();
+    $("#submitButton").hide();
+	$("#indicator").hide();
+    $("#indicator2").hide();	
+    $("#header").hide();		
+	$("#endBlockButton").hide();
+	$("#resize").hide();
+	$("#startButton").hide();
+	$("#info").hide();
+    $("#startPostTest").hide();	
+	$("#PostTestQ").hide();
+    $("#demoCode").hide();
+    $("#returnButton").hide();
+    $("#iframewarning").hide(); 
+	$("#screensize").hide();
+    $("#instruction").hide();
+	
+    var canvas = document.getElementById("myCanvas"); // myCanvas is to make sure that everything is presented in the middle of the screen
+	var ctx = canvas.getContext("2d"); // need context to draw on canvas
+	var runNumber = 2; // there are 2 blocks in this task
+	var runCounter = -1; // i start at -1 because I add to the counter as soon as it is initialized.
+	var trialCounter = -1; // same reason
+	var trialNumber = 79; // 80 per block, but trial/matrix counter added to AFTER ITI does trialCounter < trialNumber
+	var keyPressed = 0; // will call this again later to check what key was pressed
+	var respTime = []; // RT for later
+    var ACCCount = 0; //this will be a counter for all the accurate trials
+	var newYM = ["https://people.duke.edu/~cb383/Faces/YM/YMN_31.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_32.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_33.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_34.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_35.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_36.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_37.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_38.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_39.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_40.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_41.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_42.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_43.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_44.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_45.jpg"];
+	var newYF = ["https://people.duke.edu/~cb383/Faces/YF/YFN_31.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_32.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_33.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_34.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_35.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_36.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_37.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_38.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_39.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_40.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_41.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_42.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_43.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_44.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_45.jpg"];
+	var newOM = ["https://people.duke.edu/~cb383/Faces/OM/OMN_31.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_32.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_33.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_34.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_35.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_36.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_37.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_38.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_39.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_40.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_41.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_42.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_43.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_44.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_45.jpg"];
+	var newOF = ["https://people.duke.edu/~cb383/Faces/OF/OFN_31.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_32.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_33.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_34.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_35.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_36.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_37.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_38.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_39.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_40.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_41.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_42.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_43.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_44.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_45.jpg"];
+	var oldYM = ["https://people.duke.edu/~cb383/Faces/YM/YMN_1.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_2.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_3.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_4.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_5.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_6.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_7.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_8.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_9.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_10.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_11.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_12.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_13.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_14.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_15.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_16.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_17.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_18.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_19.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_20.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_21.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_22.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_23.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_24.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_25.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_26.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_27.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_28.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_29.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_30.jpg"];
+	var oldYF = ["https://people.duke.edu/~cb383/Faces/YF/YFN_1.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_2.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_3.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_4.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_5.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_6.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_7.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_8.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_9.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_10.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_11.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_12.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_13.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_14.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_15.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_16.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_17.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_18.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_19.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_20.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_21.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_22.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_23.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_24.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_25.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_26.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_27.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_28.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_29.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_30.jpg"];
+	var oldOM = ["https://people.duke.edu/~cb383/Faces/OM/OMN_1.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_2.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_3.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_4.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_5.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_6.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_7.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_8.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_9.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_10.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_11.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_12.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_13.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_14.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_15.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_16.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_17.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_18.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_19.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_20.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_21.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_22.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_23.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_24.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_25.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_26.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_27.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_28.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_29.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_30.jpg"];
+	var oldOF = ["https://people.duke.edu/~cb383/Faces/OF/OFN_1.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_2.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_3.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_4.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_5.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_6.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_7.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_8.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_9.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_10.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_11.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_12.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_13.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_14.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_15.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_16.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_17.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_18.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_19.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_20.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_21.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_22.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_23.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_24.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_25.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_26.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_27.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_28.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_29.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_30.jpg"];
+    var OldimgCount = 0; //img counter for when I'm loading the images
+	var NewimgCount = 0;
+	var oldYMimgs = new Array(30); // matrix to load those images
+	var oldYFimgs = new Array(30);
+	var oldOMimgs = new Array(30);
+	var oldOFimgs = new Array(30);
+    var newYMimgs = new Array(10);
+    var newYFimgs = new Array(10);
+    var newOMimgs = new Array(10);
+    var newOFimgs = new Array(10);
+	var MatrixCounter = -1; // i use this counter so that I can keep all my face numbers in one matrix and still access that back to back
+    var oldYMcounter = 0; // each one has its own counter because of the way I coded the expt
+    var oldYFcounter = 0;
+    var oldOMcounter = 0;
+    var oldOFcounter = 0;
+    var newYMcounter = 0;
+    var newYFcounter = 0;
+    var newOMcounter = 0;
+    var newOFcounter = 0;
+    var Category = [];
+    var Age = 0;
+    var Gender = 0;
+    var FA = 0; // 1 means present for the rest of these
+    var Hit = 0;
+	var CR = 0;
+	var Miss = 0;
+    var Mem = 0; // 1 for new, 2 for old
+    var feedbackType = 0;
+    
+	var data=[['']]; //data logfile
+	var logCounter = 0; //the counter for each data entry
+	var runStart; //when a run starts
+	var Responset; // response onset
+	var StimOnset; // face onset
+	var TrialOnset; // Trial onset
+	var d1; // marker for runstart (d1.getTime - ScreenPulled)
+	var d2; // marker for stimOnset (d2.gettime - runstart)
+	var d4; // marker for responseonset (d4.gettime - runstart)
+	var d7; // marker for trial onset (d7.gettime - runstart)
+	var d8 = new Date();
+	var ScreenPulled;
+	ScreenPulled = d8.getTime();
+
+	window.hasResponse = -1; 
+	
+	$("#startButton").click(function(){
+		$("#startButton").hide();
+		runExp(); // will run my experiment function
+	});
+	
+	$("#endBlockButton").click(function(){ // when a block is finished, this button would run another block
+		$("#endBlockButton").hide();
+		$("#info").hide();
+		runBlock();
+	});
+	
+	$("#resize").click(function(){ // to make sure that people are paying attention and don't have more than one task going, this fxn won't let a run start without a large enough window size
+		$("#resize").hide(); // once they click the button, the task will start only if the proper screen portions are in place
+		$("#info").hide();
+		$("#endBlockButton").hide();
+		checkSize();
+	});
+    
+    loadImage();
+    
+    function loadImage() // this is my load image function; have to load before I start drawing b/c can take time
+	{ 
+		if (OldimgCount < 30) 
+		{
+			oldYMimgs[OldimgCount] = new Image();
+			oldYMimgs[OldimgCount].src = oldYM[OldimgCount];
+			oldYMimgs[OldimgCount].onload = loadImage;
+            
+            oldYFimgs[OldimgCount] = new Image();
+			oldYFimgs[OldimgCount].src = oldYF[OldimgCount];
+			oldYFimgs[OldimgCount].onload = loadImage;
+            
+            oldOMimgs[OldimgCount] = new Image();
+			oldOMimgs[OldimgCount].src = oldOM[OldimgCount];
+			oldOMimgs[OldimgCount].onload = loadImage;
+            
+            oldOFimgs[OldimgCount] = new Image();
+			oldOFimgs[OldimgCount].src = oldOF[OldimgCount];
+			oldOFimgs[OldimgCount].onload = loadImage;
+            
+			OldimgCount++;
+            
+		}
+		else
+		{
+			loadImage2();
+		}
+	}
+	
+	function loadImage2() // this is my load image function; have to load before I start drawing b/c can take time
+	{ 
+		if (NewimgCount < 10) 
+		{
+			newYMimgs[NewimgCount] = new Image();
+			newYMimgs[NewimgCount].src = newYM[NewimgCount];
+			newYMimgs[NewimgCount].onload = loadImage;
+            
+            newYFimgs[NewimgCount] = new Image();
+			newYFimgs[NewimgCount].src = newYF[NewimgCount];
+			newYFimgs[NewimgCount].onload = loadImage;
+            
+            newOMimgs[NewimgCount] = new Image();
+			newOMimgs[NewimgCount].src = newOM[NewimgCount];
+			newOMimgs[NewimgCount].onload = loadImage;
+            
+            newOFimgs[NewimgCount] = new Image();
+			newOFimgs[NewimgCount].src = newOF[NewimgCount];
+			newOFimgs[NewimgCount].onload = loadImage;
+			
+			NewimgCount++;
+		}
+	}
+    
+	//these numbers will represent which stimulus to draw from
+	var RandomNumber = [];
+	var RandomNumber1 = [];
+	var RandomNumber2 = [];
+	var RandomNumber3 = [];
+	var RandomNumber8 = [];
+	var RandomNumber9 = [];
+	var RandomNumber10 = [];
+	var RandomNumber11 = [];
+	
+	var Block1 = [];
+    var Block2 = [];
+	var FaceStimMatrix = [];
+	
+	for (i=0; i < 15; i++) 
+	{ 
+		RandomNumber=RandomNumber.concat(1); // YM
+		RandomNumber1=RandomNumber1.concat(2); // YF
+		RandomNumber2=RandomNumber2.concat(3); // OM
+		RandomNumber3=RandomNumber3.concat(4); // OF
+	}
+	
+	for (i=0; i < 5; i++) 
+	{
+	    RandomNumber8=RandomNumber8.concat(9); // YM
+		RandomNumber9=RandomNumber9.concat(10); // YF
+		RandomNumber10=RandomNumber10.concat(11); // OM
+		RandomNumber11=RandomNumber11.concat(12); // OF
+	}
+    
+	function runSetup()
+	{
+		Block1 = Block1.concat(RandomNumber, RandomNumber1, RandomNumber2, RandomNumber3, RandomNumber8, RandomNumber9, RandomNumber10, RandomNumber11);
+		Block2 = Block2.concat(RandomNumber11, RandomNumber10, RandomNumber9, RandomNumber8, RandomNumber3, RandomNumber2, RandomNumber1, RandomNumber);
+		shuffle(Block1);
+		shuffle(Block2);
+        FaceStimMatrix = FaceStimMatrix.concat(Block1, Block2);
+	}
+    
+    //simple "runExp" to separate out the WHOLE experiment from individual blocks
+	function runExp()
+	{
+		logCounter = 0;
+		runSetup();
+		runBlock();
+	}
+	
+	function runBlock() // main task is separated into 2 blocks
+	{
+		runCounter++;
+		if (runCounter < runNumber)
+		{
+            $("#info").hide();
+			trialCounter = -1; // resets the trial counter in case there are multiple blocks
+            window.hasResponse = -1; // make sure no buttons have been recorded when the task hasn't even started
+			ctx.clearRect(0,0,canvas.width, canvas.height); // this is essentially like clearing the screen in matlab
+            checkSize();
+		}
+		else
+		{
+            $("#info").hide();
+            $("#indicator").hide();
+            $("#indicator2").hide();
+            $("#header").hide();
+            $("#Mem1", opener.window.document).val(data.join(";"));
+            $("#Mem1").val(data.join(";"));
+			$("#startPostTest").show();	
+			$("#screensize").show();
+		}
+	}
+
+    // adapted from: http://stackoverflow.com/questions/3437786/get-the-size-of-the-screen-current-web-page-and-browser-window
+	function checkSize() 
+	{
+		var w = window.innerWidth;
+		var h = window.innerHeight;
+		if (w < 800 || h < 600) // 800 by 600 is the lowest resolution on my laptop; seems like a good "minimum" (basically need 500 x 500 at least)
+        {
+			$("#info").text('Your browser window is too small to display the images properly. Please increase the window size or your screen resolution.');
+  			$("#info").show();
+			$("#resize").show();
+		} 
+		else // if their screen is the proper size...
+		{
+            $("#info").hide();
+			$("#resize").hide();
+			countDown(3); // start the countdown for the experiment
+		}	
+	}
+	
+	function countDown(time) // the countdown is meant to "prepare" the subjects that the experiment is beginning
+	{
+		if (time > 0)
+		{
+			ctx.textBaseline="middle";
+			ctx.textAlign="center";
+			ctx.fillStyle="black";
+			ctx.font="200px Arial";
+			ctx.clearRect(0,0, canvas.width, canvas.height);
+			ctx.fillText("" + time, canvas.width / 2, canvas.height / 2);
+			setTimeout(function(){countDown(time - 1)},1000);
+		}
+		else
+		{
+            $("#header").hide();
+            $("#indicator").show();
+            $("#indicator2").show();
+            d1 = new Date();
+			runStart = d1.getTime() - ScreenPulled;
+			runTrial(); // once the countdown is finished, it goes to the ITI; this way, subs are less likely to mess up the first trial, i.e. if something was suddenly presented right after a 3-2-1 counter
+		}
+	}
+    
+    function runTrial()
+	{
+        window.hasResponse = -1;
+        ctx.clearRect(0,0,canvas.width, canvas.height); // no matter what, clear the screen
+        feedbackType = 0;
+    
+        if (trialCounter < trialNumber)
+        {
+            trialCounter++;
+            MatrixCounter++;
+            $("#info").hide();
+            Mem = 0;
+            keyPressed = 0;
+            setTimeout(drawFace);
+        }
+        else // then you're done with the block!
+        {   
+            if (runCounter == 0) // so after run 1, show halfway thru; run 2, i.e., end, just show button
+            {
+                $("#info").text("You are halfway through this portion of the experiment!");
+                $("#info").show();
+            }
+            $("#indicator").hide();
+            $("#indicator2").hide();
+            $("#header").hide();
+            $("#endBlockButton").show();
+        }
+	}
+ 
+	function drawFace()
+	{
+        window.hasResponse = 0;
+        d2 = new Date();
+        StimOnset = d2.getTime() - runStart;
+        
+		if (FaceStimMatrix[MatrixCounter] == 1)
+		{
+			ctx.drawImage(oldYMimgs[oldYMcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350); // width, height. half of height & width to present in center of screen
+            Category = 'YM';
+            Mem = 2;
+            Age = 1;
+            Gender = 1;
+            oldYMcounter++;
+		}
+		else if (FaceStimMatrix[MatrixCounter] == 2)
+		{
+			ctx.drawImage(oldYFimgs[oldYFcounter],((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+            Category = 'YF';
+            Mem = 2;
+            Age = 1;
+            Gender = 2;
+            oldYFcounter++;
+		}
+		else if (FaceStimMatrix[MatrixCounter] == 3)
+		{
+			ctx.drawImage(oldOMimgs[oldOMcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+            Category = 'OM';
+            Mem = 2;
+            Age = 2;
+            Gender = 1;
+            oldOMcounter++;
+		}
+		else if (FaceStimMatrix[MatrixCounter] == 4)
+		{
+			ctx.drawImage(oldOFimgs[oldOFcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+            Category = 'OF';
+            Mem = 2;
+            Age = 2;
+            Gender = 2;
+            oldOFcounter++;
+		}
+        else if (FaceStimMatrix[MatrixCounter] == 9)
+		{
+			ctx.drawImage(newYMimgs[newYMcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350); // width, height. half of height & width to present in center of screen
+            Category = 'YM'
+            Mem = 1;
+            Age = 1;
+            Gender = 1;
+            newYMcounter++;
+		}
+		else if (FaceStimMatrix[MatrixCounter] == 10)
+		{
+			ctx.drawImage(newYFimgs[newYFcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+            Category = 'YF';
+            Mem = 1;
+            Age = 1;
+            Gender = 2;
+            newYFcounter++;
+		}
+		else if (FaceStimMatrix[MatrixCounter] == 11)
+		{
+			ctx.drawImage(newOMimgs[newOMcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+            Category = 'OM';
+            Mem = 1;
+            Age = 2;
+            Gender = 1;
+            newOMcounter++;
+		}
+		else if (FaceStimMatrix[MatrixCounter] == 12)
+		{
+			ctx.drawImage(newOFimgs[newOFcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+            Category = 'OF';
+            Mem = 1;
+            Age = 2;
+            Gender = 2;
+            newOFcounter++;
+		}
+        
+        setTimeout(checkResponse, 2000);
+	}
+    
+    function checkResponse()
+	{
+       if (window.hasResponse == 0 || feedbackType == 1)
+       {
+            window.hasResponse = -1;
+            Hit = 0;
+            Miss = 0;
+            FA = 0;
+            CR = 0;
+            data[logCounter++] = ["MemRespITI:", 3, logCounter, trialCounter, MatrixCounter, runCounter, Category, Gender, Age,FaceStimMatrix[MatrixCounter],oldYMcounter, oldYFcounter, oldOMcounter, oldOFcounter,newYMcounter,newYFcounter,newOMcounter,newOFcounter, keyPressed, Mem, Hit, FA, CR, Miss, respTime];
+            setTimeout(showFeedback)
+			window.hasResponse = -1;
+       }
+       else if (window.hasResponse == -1)
+       {
+            setTimeout(runTrial);
+       }
+	}
+    
+    function showFeedback() // fb time-out fxn
+	{
+        window.hasResponse = -1;
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        ctx.textBaseline="middle";
+        ctx.textAlign="center";
+        ctx.fillStyle="black";
+        ctx.font="75px Arial"; 
+        ctx.fillText("Respond faster",(canvas.width / 2), (canvas.height / 2), 500); // 500 is to state limit of the canvas width
+        setTimeout(runTrial, 1000);
+	}
+		
+    $("body").keypress(function(event) // 
+    {        
+        if (window.hasResponse == 0) // this ensures that it's getting the key that was pressed AFTER the stimulus was presented
+        {	
+            keyPressed = String.fromCharCode(event.which); // identifies which key was pressed
+            
+            if (keyPressed == "a" || keyPressed == "s" || keyPressed == "l" || keyPressed == "k" || keyPressed == "A" || keyPressed == "S" || keyPressed == "K" || keyPressed == "L") // only advance & log data if they've pressed one of the correct keys
+            {
+                window.hasResponse = -1; // this makes certain that keypresses aren't logged after that
+                d4 = new Date();
+                Responset = d4.getTime() - runStart;
+                respTime = Responset - StimOnset;
+                
+                if (Mem == 1) // aka it's a new face
+                {
+                    if (keyPressed == "a" || keyPressed == "s" || keyPressed == "A" || keyPressed == "S") // a & s mean old, j & k mean new
+                    {
+                        FA = 1;
+                        Hit = 0;
+                        Miss = 0;
+						CR = 0;
+                    }
+                    else if (keyPressed == "l" || keyPressed == "k" || keyPressed == "K" || keyPressed == "L")
+                    {
+                        Hit = 0;
+                        FA = 0;
+						CR = 1;
+						Miss = 0;
+                    }
+                }
+                else if (Mem == 2) // aka it's an old face
+                {
+                    if (keyPressed == "a" || keyPressed == "s" || keyPressed == "A" || keyPressed == "S") // a & s mean old, j & k mean new
+                    {
+                        FA = 0;
+                        Hit = 1;
+						Miss = 0;
+						CR = 0;
+                    }
+                    else if (keyPressed == "l" || keyPressed == "k" || keyPressed == "K" || keyPressed == "L")
+                    {
+                        Hit = 0;
+                        FA = 0;
+						CR = 0;
+						Miss = 1;
+                    }
+                }
+                
+                if (respTime < 2000)
+                {
+                    feedbackType = 0;
+                    data[logCounter++] = ["MemResp:", 3, logCounter, trialCounter, MatrixCounter, runCounter, Category, Gender, Age,FaceStimMatrix[MatrixCounter],oldYMcounter, oldYFcounter, oldOMcounter, oldOFcounter,newYMcounter,newYFcounter,newOMcounter,newOFcounter, keyPressed, Mem, Hit, FA, CR, Miss, respTime];
+                }
+                else
+                {
+                    feedbackType = 1;
+                }                
+            }
+        }
+    });
+
+		
+
+	
+});	
+
+</script>
+</head>
+
+<h2 id="InstructionsHeader" style="font-family:arial;font-size:30px">Instructions:</h2>
+<p id="ReadInstructions" style="font-family:arial;font-weight:bold; font-size:24px">Please read these instructions carefully before you begin the experiment.</p>
+<p id="Instructions" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="Instructions1" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="Instructions2" style="font-family:arial;color:black;font-size:22px"></p>
+<button id="startTaskOne" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Click to exit instructions and start the task.</button>
+<p><button id="NextButton" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Next</button></p>
+<button id="startInstruct" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Next</button>
+<button id="RedoInstructOne" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Read through the instructions again.</button>
+
+<body>
+	<table>
+		<tr>
+			<td>
+				<!--All of these are buttons or page elements 'text-align' and 'align' do the same thing, but align is for older browsers-->
+                <p id="header" style="font-family: Arial; color: black; font-size: 33px; text-align:center; align: center"> Please indicate whether this image is: </p>
+                <p id="indicator" style="font-family: Arial; color: black; font-size: 30px; text-align:center; align: center"> a/A = Definitely Old; s/S = Probably Old</p>
+				<p id="indicator2" style="font-family: Arial; color: black; font-size: 30px; text-align:center; align: center"> k/K = Definitely New; l/L = Probably New</p>
+				<p id="info" style="font-family: Arial; color: black; font-size: 25px; text-align: center; align: center">Once you're ready to begin, press the button below.</p>
+				<p id="instruction" style="font-family: arial; font-size: 40px"></p>
+                <p id="iframewarning" style="font-family: arial; font-size: 40px">Your browser does not support iframes. Fill out the post-test (https://duke.qualtrics.com/jfe/form/SV_dj4EDkRuHvRS1h3) in a new tab. Then paste the code you receive into the blank space below.</p>
+				<iframe id="PostTestQ" src="https://duke.qualtrics.com/jfe/form/SV_dj4EDkRuHvRS1h3" width="800" height ="600">
+                    <p>Your browser does not support iframes. Fill out the post-test here: https://duke.qualtrics.com/jfe/form/SV_dj4EDkRuHvRS1h3. Then paste the code you get at the end in the blank space below.</p>
+                </iframe>
+                <p><input id="demoCode" name="demoCode" value=""></p>
+                <p><button id="returnButton" style="font-family:arial;color:black;font-size:14px;">Submit Post-Test Questionnaire Code. Please look at the Main Menu page after pressing this button.</button></p> 
+				<p><button id="endBlockButton" style="font-family: Arial; color: black; text-align:center; align: center">You may take a short break. Click this button when you're ready to continue the task.</button></p>
+				<p><button id="resize" style="font-family: Arial; color: black; text-align:center; align: center">Try resizing again.</button></p>
+				<p><button id ="startButton" style="font-family: Arial; color: black; text-align:center; align:center">Start the Task</button></p>
+                
+				<form id="mturk_form" method="POST" action="http://152.3.33.45/AMTSubmit/dataHandler.php">
+				
+					<input type="hidden" id="ExpName" name="ExpName" value="HLCM_FINST">
+					<input type="hidden" id="assignmentId" name="assignmentId" value="">
+					<input type="hidden" id="workerId" name="workerId" value="">
+					<input type="hidden" id="hitId" name="hitId" value="">
+					<input type="hidden" id="RTs", name="RTs", value=""> 
+                    <input type="hidden" id="Mem1", name="Mem1", value="">
+                    <input type="hidden" id="Filler", name="Filler", value="">
+					<input id="submitButton" style="font-family: Arial; color: black; font-size: 36px; text-align:center; align: center" type="submit" name="Finish" value="Submit">
+					
+				</form>
+                <!-- the style here was so that the canvas wouldn't get selected by the left click-->
+                <p id="screensize" style="font-family: arial; font-size: 40px">Please make sure that your screen is enlarged before clicking the button below.</p>
+				<p><button id="startPostTest" style="font-family: arial; color: black; font-size: 24px;">Please click this button to fill out our post-test questionnaire.</button></p> 	
+                <canvas id="myCanvas" width="500" height="500" style="user-select: none; -webkit-user-select:none; -moz-user-select:none"></canvas>
+
+			</td>
+		</tr>
+	</table>
+
+</body>
+</html>

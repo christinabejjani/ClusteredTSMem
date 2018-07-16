@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+
+<link rel="stylesheet" href="HLtask.css" type="text/css" charset="utf-8">
+<script type="text/javascript" src="jquery-3.1.1.js"> </script>
+<script type="text/javascript" src="Stimuli_Final2.js"></script>
+<script type="text/javascript" src="shuffle.js"></script>
+<script type="text/javascript">
+
+function gup(name,tmpURL) // function specifically for mTurk; this gets out assignmentIds, workerIds, & hitIds.
+{
+	var regexS = "[\\?&]"+name+"=([^&#]*)";
+	var regex = new RegExp(regexS);
+	var results = regex.exec(tmpURL);
+	if (results == null)
+	{
+		return "";
+	}
+	
+	else
+	{
+		return results[1];
+	}
+}
+
+$(document).ready(function(){    
+	
+	//////////////////////////////////////////////////////////////REUSABLE FXNS //////////////////////////////////////////////////////////////
+	
+	//to be able to submit the data from the last trial, we need to get the assignment ID, etc. from the Main Menu file
+	document.getElementById('assignmentId').value = gup('assignmentId', opener.document.referrer);
+	document.getElementById('hitId').value = gup('hitId', opener.document.referrer);
+	document.getElementById('workerId').value = gup('workerId', opener.document.referrer);
+	
+	//disabling mouse clicks in the task
+	//from: http://stackoverflow.com/questions/8595909/how-to-completley-disable-any-mouse-click
+	var event1 = $(document).click(function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+	});
+	
+
+	//from: http://stackoverflow.com/questions/8595909/how-to-completley-disable-any-mouse-click
+    //disable right click
+    $(document).bind('contextmenu', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+    });
+	
+	//Stops backspace presses (8) and spaces (32);
+	//from: http://stackoverflow.com/questions/1495219/how-can-i-prevent-the-backspace-key-from-navigating-back
+  	$(function(){
+        var rx = /INPUT|SELECT|TEXTAREA/i;
+        $(document).bind("keydown keypress", function(e){
+            if( e.which == 32 ||e.which == 8 )
+            { // 8 == backspace
+                if(!rx.test(e.target.tagName) || e.target.disabled || e.target.readOnly )
+                {
+                    e.preventDefault();
+                }
+            }
+        });
+  	});
+    
+	//////////////////////////////////////////////////////////////INSTRUCTIONS FOR BLOCK ONE //////////////////////////////////////////////////////////////
+	
+	var TOslideNum=0;
+	var TOmaxNum=10;
+	
+	hideAllInstruct();
+	$("#InstructionsHeader").show();
+	$("#ReadInstructions").show();
+	$("#startInstruct").show();
+	
+	function hideAllInstruct()
+	{
+		$("#startBlockOne").hide();
+		$("#NextButton").hide();
+		$("#startInstruct").hide();
+		$("#InstructionsHeader").hide();
+		$("#ReadInstructions").hide();
+		$("#RedoInstructOne").hide();
+		$("#Instructions").hide();
+		$("#Instructions1").hide();		
+	    $("#Instructions2").hide();
+		$("#Instructions3").hide();
+		$("#Instructions4").hide();
+		$("#Instructions5").hide();
+		$("#Instructions6").hide();
+		$("#FaceLabel").hide();
+		$("#OFN").hide();
+		$("#OMN").hide();
+		$("#YFN").hide();
+		$("#YMN").hide();
+		$("#Procedure").hide();
+	}
+	
+    $("#startBlockOne").on('click', function(){
+		hideAllInstruct();
+		$("#startButton").show(); //start button appears when the task is called
+		$("#info").show(); // brief instructions
+	});
+
+	$("#NextButton").on('click', function(){
+	    TOslideNum=TOslideNum+1;
+		moveShow(TOslideNum);
+	});
+
+	$("#startInstruct").on('click', function(){
+		$("#startInstruct").hide()
+		$("#NextButton").show()
+	    moveShow(TOslideNum);
+	});
+
+	$("#RedoInstructOne").on('click',function(){
+		hideAllInstruct();
+		$("#InstructionsHeader").show();
+		$("#ReadInstructions").show();
+		TOslideNum=TOslideNum-TOmaxNum;
+		moveShow(TOslideNum);
+	});
+	
+	function moveShow(TOslideNum)
+	{
+		if (TOslideNum==0) 
+        {
+		   $("#Instructions").html('You will be presented with a series of face images that differ across 2 dimensions: <b>age</b> (old/young) and <b>gender</b> (female/male). Young means less than 30-years-old, while Old means greater than 45-years-old. Examples of the four face image categories will be shown after you click the button.');
+		   $("#Instructions").show() 	
+		} 
+		else if (TOslideNum==1)
+		{
+			$("#FaceLabel").text("OF - Old, Female");
+			$("#FaceLabel").show();
+			$("#OFN").show();
+		}
+		else if (TOslideNum==2)
+		{
+			$("#OFN").hide();
+			$("#FaceLabel").text("OM - Old, Male");
+			$("#FaceLabel").show();
+			$("#OMN").show();
+		}
+		else if (TOslideNum==3)
+		{
+			$("#OMN").hide();
+			$("#FaceLabel").text("YF - Young, Female");
+			$("#FaceLabel").show();
+			$("#YFN").show();
+		}
+		else if (TOslideNum==4)
+		{
+			$("#YFN").hide();
+			$("#FaceLabel").text("YM - Young, Male");
+			$("#FaceLabel").show();
+			$("#YMN").show();
+		}
+		else if (TOslideNum==5)
+		{
+			$("#YMN").hide();
+			$("#FaceLabel").hide();
+			$("#Instructions1").text('If the face image is FEMALE, press v/V for young and m/M for old. If the face image is MALE, press n/N for young and b/B for old. Please note that the correct response button for each face image category will not change during the task.');
+			$("#Instructions1").show();
+		}
+		else if (TOslideNum==6) 
+		{		
+			$("#Procedure").show();
+			$("#Instructions2").text('Each trial proceeds in the following sequence. First, a fixation cross will be presented. Then, once a face image has presented, you may make your response. Next, you will be shown accurate performance feedback, followed by a blank screen. Note that no particular face image will be shown more than once.');
+			$("#Instructions2").show();
+		}
+		else if (TOslideNum==7) 
+		{
+			$("#Procedure").hide();
+            $("#Instructions3").text('Please enlarge this window to encompass the entire computer screen and sit at a comfortable distance from the screen.');   
+			$("#Instructions3").show();
+		} 
+		else if (TOslideNum==8) 
+		{
+			$("#Instructions4").text('Respond to each face image as quickly as possible while still being accurate. Always press the v/V key with your RIGHT index finger, the b/B key with your RIGHT middle finger, the n/N key with your RIGHT ring finger, and the m/M key with your RIGHT pinky finger.');
+			$("#Instructions4").show();	   
+		} 
+		else if (TOslideNum==9) 
+		{
+			$("#Instructions5").text('Please stay focused during the experiment. You must get above 65% accuracy to get paid. If your accuracy is above 90%, you will receive a bonus of $1.');
+			$("#Instructions5").show();
+		}
+		else if (TOslideNum==10) 
+		{
+			$("#Instructions6").text('This task will take 6 minutes to complete. Click the button to exit the instructions and proceed to the task.');
+			$("#Instructions6").show();
+		}
+		
+		if (TOslideNum==0) 
+		{
+		   $("#NextButton").show(); 
+		} 
+		else if (TOslideNum < TOmaxNum) 
+		{ 
+		   $("#NextButton").show(); 
+		} 
+		else 
+		{
+		   $("#NextButton").hide();
+		   $("#startBlockOne").show();
+		   $("#RedoInstructOne").show();	   
+		} 
+	
+	}
+    
+	//////////////////////////////////////////////////////////////LEARNING TASK //////////////////////////////////////////////////////////////
+	
+	$("#indicator").hide();	
+	$("#endBlockButton").hide();
+	$("#endExpButton").hide();
+	$("#resize").hide();
+	$("#mturk_form").hide();
+	$("#startButton").hide();
+	$("#info").hide();
+    
+    var canvas = document.getElementById("myCanvas"); // myCanvas is to make sure that everything is presented in the middle of the screen
+	var ctx = canvas.getContext("2d"); // need context to draw on canvas
+	var runNumber = 1; //
+	var runCounter = -1; // i start at -1 because I add to the counter as soon as it is initialized.
+	var trialCounter = -1; // same reason
+	var trialNumber = 119; // there are 120 total trials
+	var keyPressed = 0; // will call this again later to check what key was pressed
+	var accuracy = 0; // assume incorrect until they press correct button
+	var respTime = []; // RT for later
+	var accsum = []; // accuracy feedback that they'll get at the end of the block
+	var PressCorrect = []; // how it determines accuracy
+    var PressCorrect2 = [];
+    var ACCCount = 0; //this will be a counter for all the accurate trials
+	var YMNfileNames = ["https://people.duke.edu/~cb383/Faces/YM/YMN_1.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_2.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_3.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_4.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_5.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_6.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_7.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_8.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_9.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_10.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_11.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_12.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_13.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_14.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_15.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_16.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_17.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_18.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_19.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_20.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_21.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_22.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_23.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_24.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_25.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_26.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_27.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_28.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_29.jpg", "https://people.duke.edu/~cb383/Faces/YM/YMN_30.jpg"];
+	var YFNfileNames = ["https://people.duke.edu/~cb383/Faces/YF/YFN_1.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_2.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_3.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_4.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_5.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_6.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_7.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_8.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_9.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_10.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_11.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_12.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_13.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_14.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_15.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_16.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_17.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_18.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_19.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_20.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_21.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_22.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_23.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_24.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_25.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_26.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_27.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_28.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_29.jpg", "https://people.duke.edu/~cb383/Faces/YF/YFN_30.jpg"];
+	var OMNfileNames = ["https://people.duke.edu/~cb383/Faces/OM/OMN_1.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_2.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_3.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_4.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_5.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_6.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_7.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_8.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_9.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_10.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_11.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_12.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_13.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_14.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_15.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_16.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_17.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_18.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_19.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_20.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_21.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_22.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_23.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_24.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_25.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_26.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_27.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_28.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_29.jpg", "https://people.duke.edu/~cb383/Faces/OM/OMN_30.jpg"];
+	var OFNfileNames = ["https://people.duke.edu/~cb383/Faces/OF/OFN_1.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_2.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_3.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_4.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_5.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_6.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_7.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_8.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_9.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_10.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_11.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_12.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_13.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_14.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_15.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_16.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_17.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_18.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_19.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_20.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_21.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_22.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_23.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_24.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_25.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_26.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_27.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_28.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_29.jpg", "https://people.duke.edu/~cb383/Faces/OF/OFN_30.jpg"];
+    var imgCount = 0; //img counter for when I'm loading the images
+	var YMNimgs = new Array(30); // matrix to load those images
+	var YFNimgs = new Array(30);
+	var OMNimgs = new Array(30);
+	var OFNimgs = new Array(30);
+	var MatrixCounter = -1; // i use this counter so that I can keep all my face numbers in one matrix and still access that back to back
+    var feedbackType = 0; // default, to determine FB given
+	var ResponseMatrix = 0; // this is just so that I can see there's an equal number of times the sub will be pressing left and right buttons
+	var YMNcounter = 0; // each one has its own counter because of the way I coded the expt
+    var YFNcounter = 0;
+    var OMNcounter = 0;
+    var OFNcounter = 0;
+	var Category = 0;
+	var Action = 0;
+    
+	var data=[['']]; //data logfile
+	var logCounter = 0; //the counter for each data entry
+	var runStart; //when a run starts
+	var Responset; // response onset
+	var StimOnset; // face onset
+	var d1; // marker for runstart (d1.getTime - ScreenPulled)
+	var d2; // marker for stimOnset (d2.gettime - runstart)
+	var d4; // marker for responseonset (d4.gettime - runstart)
+	var d8 = new Date();
+	var ScreenPulled;
+	ScreenPulled = d8.getTime();
+	window.hasResponse = -1;
+	
+	$("#startButton").click(function(){
+		$("#startButton").hide();
+		$("#info").hide();
+		runExp(); // will run my experiment function
+	});
+	
+	$("#endBlockButton").click(function(){ // when a block is finished, this button would run another block
+		$("#endBlockButton").hide();
+		$("#indicator").hide();
+		runBlock();
+	});
+	
+	$("#resize").click(function(){ // to make sure that people are paying attention and don't have more than one task going, this fxn won't let a run start without a large enough window size
+		$("#resize").hide(); // once they click the button, the task will start only if the proper screen portions are in place
+		$("#indicator").hide();
+		$("#endBlockButton").hide();
+		checkSize();
+	});
+	
+	$("#endExpButton").click(function(){ // when the experiment is finished, this will update the main menu file (which has all the HTML files gathered) & close the window
+        opener.updateMainMenu(2);
+        JavaScript:window.close();
+	});
+    
+    loadImage();
+	
+	function loadImage() // this is my load image function; have to load before I start drawing b/c can take time
+	{ 
+		if (imgCount < 30) 
+		{
+			OMNimgs[imgCount] = new Image();
+			OMNimgs[imgCount].src = OMNfileNames[imgCount];
+			OMNimgs[imgCount].onload = loadImage;
+            
+            OFNimgs[imgCount] = new Image();
+			OFNimgs[imgCount].src = OFNfileNames[imgCount];
+			OFNimgs[imgCount].onload = loadImage;
+                        
+            YMNimgs[imgCount] = new Image();
+			YMNimgs[imgCount].src = YMNfileNames[imgCount];
+			YMNimgs[imgCount].onload = loadImage;
+            
+            YFNimgs[imgCount] = new Image();
+			YFNimgs[imgCount].src = YFNfileNames[imgCount];
+			YFNimgs[imgCount].onload = loadImage;
+            
+			imgCount++;
+		}
+	}
+	
+	function runExp()
+	{
+		logCounter = 0;
+		runBlock();
+	}
+	
+	function runBlock() // main task is separated into 2 blocks
+	{
+		runCounter++;
+		if (runCounter < runNumber)
+		{
+			$("#redo").hide(); // hiding various HTML objects
+            $("#indicator").hide();
+			trialCounter = -1; // resets the trial counter in case there are multiple blocks
+            window.hasResponse = -1; // make sure no buttons have been recorded when the task hasn't even started
+            ctx.clearRect(0,0,canvas.width, canvas.height); // this is essentially like clearing the screen in matlab
+			if (runCounter > 0)
+            {
+                ACCCount = 0; // reset acc count before next block
+            }
+            checkSize();            
+		}
+		else
+		{
+            $("#RTs").val(data.join(";"));
+            $("#RTs", opener.window.document).val(data.join(";"));
+			$("#endExpButton").show();	
+		}
+	}
+	
+	// adapted from: http://stackoverflow.com/questions/3437786/get-the-size-of-the-screen-current-web-page-and-browser-window
+	function checkSize() 
+	{
+		var w = window.innerWidth;
+		var h = window.innerHeight;
+		if (w < 800 || h < 600) // 800 by 600 is the lowest resolution on my laptop; seems like a good "minimum" (basically need 500 x 500 at least)
+        {
+			$("#indicator").text('Your browser window is too small to display the images properly. Please increase the window size or your screen resolution.');
+  			$("#indicator").show();
+			$("#resize").show();
+		} 
+		else // if their screen is the proper size...
+		{
+			$("#resize").hide();
+			countDown(3); // start the countdown for the experiment
+		}	
+	}
+		
+    function countDown(time) // the countdown is meant to "prepare" the subjects that the experiment is beginning
+	{
+		if (time > 0)
+		{
+			$("#startButton").hide();
+			ctx.textBaseline="middle";
+			ctx.textAlign="center";
+			ctx.fillStyle="black";
+			ctx.font="200px Arial";
+			ctx.clearRect(0,0, canvas.width, canvas.height);
+			ctx.fillText("" + time, canvas.width / 2, canvas.height / 2);
+			setTimeout(function(){countDown(time - 1)},1000);
+		}
+		else
+		{
+            d1 = new Date();
+			runStart = d1.getTime() - ScreenPulled;
+            showITI(); // once the countdown is finished, it goes to the ITI; this way, subs are less likely to mess up the first trial, i.e. if something was suddenly presented right after a 3-2-1 counter
+		}
+	}
+    
+	function showITI()
+	{
+        window.hasResponse = -1;
+        ctx.clearRect(0,0,canvas.width, canvas.height); // no matter what, clear the screen
+        feedbackType = 0;
+            
+        if (trialCounter < trialNumber)
+        {
+            $("#indicator").hide();
+            trialCounter++; // I moved the trial counter here so that it would record the ITI button presses correctly
+            MatrixCounter++;
+            keyPressed = 0;
+            setTimeout(drawCross,750);
+        }
+        else // then you're done with the block!
+        {   
+            var accsum = Math.round((ACCCount/(trialNumber+1)) * 100); // calculates accuracy percentage (#correct trials/total)*100
+			$("#indicator").text("Your accuracy was " + accsum + " percent. If you would like to take a break now, you can, but please take no more than 4 minutes.");
+			$("#indicator").show();
+			$("#endBlockButton").show();
+        }
+	}
+    
+    function drawCross() // this is my fixation function
+	{
+        window.hasResponse = -1;
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+		ctx.textBaseline="middle";
+		ctx.textAlign="center";
+		ctx.font="75px Arial"; // half the size of my images
+		ctx.fillStyle="black";
+		ctx.fillText("+", (canvas.width/2), (canvas.height/2)); // center screen fixation
+		setTimeout(drawStim,500);
+	}
+	
+	function drawStim()
+	{
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        window.hasResponse = 0;
+        d2 = new Date();
+        StimOnset = d2.getTime() - runStart;
+
+            if (StimSequence[MatrixCounter] == 1)
+            {
+                ctx.drawImage(YFNimgs[YFNcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+                Category = 'YFN';
+                YFNcounter++;
+                PressCorrect = 'v';
+                PressCorrect2 = 'V';
+                Action = 1;
+                ResponseMatrix = 1;
+            }
+            else if (StimSequence[MatrixCounter] == 2)
+            {
+                ctx.drawImage(YMNimgs[YMNcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+                Category = 'YMN';
+                YMNcounter++;
+                PressCorrect = 'n';
+                PressCorrect2 = 'N';
+                Action = 3;
+                ResponseMatrix = 3;
+            }
+            else if (StimSequence[MatrixCounter] == 3)
+            {
+                ctx.drawImage(OFNimgs[OFNcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+                Category = 'OFN';
+                OFNcounter++;
+                PressCorrect = 'm';
+                PressCorrect2 = 'M';
+                Action = 2;
+                ResponseMatrix = 4;
+            }
+			else if (StimSequence[MatrixCounter] == 4)
+            {
+                ctx.drawImage(OMNimgs[OMNcounter], ((canvas.width/2) - 140), ((canvas.height/2) - 175), 280, 350);
+                Category = 'OMN';
+                OMNcounter++;
+                PressCorrect = 'b';
+                PressCorrect2 = 'B';
+				Action = 4;
+                ResponseMatrix = 2;
+            }	
+        
+		setTimeout(showFeedback, 1250);  
+	}
+    
+    function showFeedback()
+	{
+        window.hasResponse = -1;
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        ctx.textBaseline="middle";
+        ctx.textAlign="center";
+        ctx.fillStyle="black";
+        ctx.font="75px Arial"; // had to decrease fb so it fits in my 500x500 canvas (+ respond quicker needs more space)
+        
+        if (feedbackType == 1) // these fb types are coded below, where the keypress is
+        {
+            ctx.fillText("Correct", (canvas.width / 2), (canvas.height / 2), 500);
+        }
+        else // so if their fb type says they're not correct...
+        {        
+            if (feedbackType == 2) // fb type 2 was still under "if window.hasResponse = 0" aka if they responded; so it established incorrect response
+            {
+                ctx.fillText("Incorrect", (canvas.width / 2), (canvas.height / 2), 500);
+            }
+            else // and if they're not incorrect, they haven't responded
+            {
+                //in case they didn't hit a button
+                accuracy = 0;
+                feedbackType = 3;
+                data[logCounter++] = ["RespITI:", 4, logCounter, trialCounter, MatrixCounter, runCounter, YMNcounter, YFNcounter, OMNcounter, OFNcounter, Action, Category, StimSequence[MatrixCounter], ResponseMatrix, PressCorrect, keyPressed, accuracy, respTime, feedbackType, ACCCount];
+                ctx.fillText("Respond quicker",(canvas.width / 2), (canvas.height / 2), 500);
+            }
+        }
+        
+        setTimeout(showITI, 500);
+	}
+		
+    $("body").keypress(function(event) // 
+    {        
+        if (window.hasResponse == 0) // this ensures that it's getting the key that was pressed AFTER the stimulus was presented
+        {
+            keyPressed = String.fromCharCode(event.which); // identifies which key was pressed
+		
+            if (keyPressed == "v" || keyPressed == "b" || keyPressed == "n" || keyPressed == "m" || keyPressed == "V" || keyPressed == "B" || keyPressed == "N" || keyPressed == "M")
+            {
+                window.hasResponse = -1; // this makes certain that keypresses aren't logged after that
+                d4 = new Date();
+                Responset = d4.getTime() - runStart;
+                respTime = Responset - StimOnset;
+                
+                if (keyPressed == PressCorrect || keyPressed == PressCorrect2) // compares keypress to the correct press for a trial
+				{
+					if (respTime < 1250)
+					{
+						accuracy = 1;
+						feedbackType = 1;
+						ACCCount++; 							
+					}
+					else
+					{
+						feedbackType = 3;
+						accuracy = 0;
+					}
+				}
+                else // if they didn't press the right key, they might not have responded OR responded incorrectly
+				{
+					if (respTime < 1250)
+					{
+						accuracy = 0;
+						feedbackType = 2;
+					}
+					else
+					{
+						feedbackType = 3;
+						accuracy = 0;
+					}
+				}
+                    
+				data[logCounter++] = ["Resp:", 4, logCounter, trialCounter, MatrixCounter, runCounter, YMNcounter, YFNcounter, OMNcounter, OFNcounter, Action, Category, StimSequence[MatrixCounter], ResponseMatrix, PressCorrect, keyPressed, accuracy, respTime, feedbackType, ACCCount];
+						
+            }
+        }
+    });
+		
+
+	
+});	
+
+</script>
+</head>
+
+<body>
+
+<h2 id="InstructionsHeader" style="font-family:arial;font-size:30px">Instructions:</h2>
+<p id="ReadInstructions" style="font-family:arial;font-weight:bold; font-size:24px">Please read these instructions carefully before you begin the experiment.</p>
+<p id="Instructions" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="FaceLabel" style="font-family:arial;color:black;font-size:22px;position:relative"></p>
+<p id="Instructions1" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="Instructions2" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="Instructions3" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="Instructions4" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="Instructions5" style="font-family:arial;color:black;font-size:22px"></p>
+<p id="Instructions6" style="font-family:arial;color:black;font-size:22px"></p>
+<img id="Procedure" src="https://people.duke.edu/~cb383/HLtask/procedure4.jpg" style="display:none" height="200" width="400"> 
+<img id="OFN" src="https://people.duke.edu/~cb383/HLtask/instructions/OFN_9.jpg" style="display:none" height="350" width="280">
+<img id="OMN" src="https://people.duke.edu/~cb383/HLtask/instructions/OMN_4.jpg" style="display:none" height="350" width="280">
+<img id="YFN" src="https://people.duke.edu/~cb383/HLtask/instructions/YFN_1.jpg" style="display:none" height="350" width="280">
+<img id="YMN" src="https://people.duke.edu/~cb383/HLtask/instructions/YMN_18.jpg" style="display:none" height="350" width="280">
+<button id="startBlockOne" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Click to exit instructions and start the task.</button>
+<p><button id="NextButton" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Next</button></p>
+<button id="startInstruct" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Next</button>
+<button id="RedoInstructOne" style="font-family:arial;color:black;font-size:20px;text-align: left; float: left;position: relative">Read through the instructions again.</button>
+
+	<table>
+		<tr>
+			<td>
+				<!--All of these are buttons or page elements 'text-align' and 'align' do the same thing, but align is for older browsers-->
+                <p id="indicator" style="font-family: Arial; color: black; font-size: 50px; text-align:center; align: center"></p>
+				<p id="info" style="font-family: Arial; color: black; font-size: 24px; text-align: center; align: center">Once you're ready to start, press the button below.</p>
+				<p id="instruction" style="font-family: arial; font-size: 40px"></p>
+                <p><button id="endBlockButton" style="font-family: Arial; color: black; text-align:center; align: center">Click this button when you're ready to continue the task.</button></p>
+				<p><button id="endExpButton" style="font-family: Arial; color: black; text-align:center; align: center; float: center">This task has ended. Click this button when you're ready to continue onto the next part.</button></p>
+				<p><button id="resize" style="font-family: Arial; color: black; text-align:center; align: center">Try resizing again.</button></p>
+				<p><button id ="startButton" style="font-family: Arial; color: black; text-align:center; align:center">Start the Task.</button></p>
+                
+				
+				<form id="mturk_form" method="POST" action="http://152.3.33.45/AMTSubmit/dataHandler.php">
+				
+					<input type="hidden" id="ExpName" name="ExpName" value="HLCM_FINST">
+					<input type="hidden" id="assignmentId" name="assignmentId" value="">
+					<input type="hidden" id="workerId" name="workerId" value="">
+					<input type="hidden" id="hitId" name="hitId" value="">
+					<input type="hidden" id="RTs", name="RTs", value="">       
+					<input id="submitButton" style="font-family: Arial; color: black; font-size: 36px; text-align:center; align: center" type="submit" name="Finish" value="Submit">
+					
+				</form>
+				<!-- the style here was so that the canvas wouldn't get selected by the left click-->
+				<canvas id="myCanvas" width="500" height="500" style="user-select: none; -webkit-user-select:none; -moz-user-select:none"></canvas>
+
+			</td>
+		</tr>
+	</table>
+</body>
+</html>
