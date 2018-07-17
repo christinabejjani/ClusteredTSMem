@@ -1,0 +1,64 @@
+Version,subjID,Gender,Age,Ethinicity,Race,Q1_V,Q2_B,Q3_N,Q4_M,SumQ1_Q4,"When you had to learn the button response that was correct for each object image category, did you notice a structure in how the button responses were organized?",Did the structure depend on the dimension (e.g. age/gender)?,How did you decide on your button responses?,How difficult did you find this task?
+1,1,Female,28,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,4
+3,2,Female,41,Non-Hispanic/Latino,Asian,1,1,1,1,4,2,,,4
+6,3,Female,24,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,4,4
+6,4,Female,44,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,4,2
+7,5,Female,23,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,3
+2,6,Male,24,Non-Hispanic/Latino,Black/African American,1,1,1,1,4,1,1,3,5
+2,7,Male,40,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,3,5
+3,8,Male,53,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,2,5
+7,9,Female,55,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,1,3
+8,10,Male,24,Non-Hispanic/Latino,Asian,1,1,1,1,4,2,,,4
+2,11,Female,33,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,2,4
+4,12,Female,29,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,3,3
+4,13,Female,32,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,2,4
+2,14,Female,56,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,4,2
+5,15,Male,27,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,1,5
+1,16,Female,34,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,5
+1,17,Female,28,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,4,5
+5,18,Female,23,Non-Hispanic/Latino,Multiracial,1,1,1,1,4,2,,,4
+7,19,Male,30,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,3
+2,20,Female,50,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,3,4
+7,21,Male,27,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,2
+8,22,Male,33,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,5
+1,23,Female,28,Non-Hispanic/Latino,Other,1,1,1,1,4,2,,,4
+6,24,Female,27,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,5
+4,25,Female,35,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,1,4
+5,26,Male,25,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,3,3
+3,27,Female,27,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,4
+5,28,Male,34,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,5
+3,29,Female,27,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,3,4
+3,30,Male,29,Non-Hispanic/Latino,American Indian/Alaska Native,1,1,1,1,4,1,1,1,4
+8,31,Male,28,Non-Hispanic/Latino,Asian,1,1,1,1,4,2,,,5
+4,32,Male,38,Non-Hispanic/Latino,Asian,1,1,1,1,4,2,,,3
+8,33,Male,26,Non-Hispanic/Latino,Asian,1,1,1,1,4,1,1,3,5
+4,34,Female,25,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,5
+1,35,Female,43,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,3
+5,36,Female,26,Hispanic/Latino,Multiracial,1,1,1,1,4,1,1,4,3
+4,37,Male,30,Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,4
+6,38,Female,30,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,0,,4
+5,39,Male,52,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,4
+6,40,Female,28,Non-Hispanic/Latino,Black/African American,1,1,1,1,4,2,,,5
+1,41,Female,28,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,3,4
+2,42,Female,27,Do Not Wish to Reply,Asian,1,1,1,1,4,1,1,3,2
+5,43,Male,19,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,0,,4
+3,44,Female,36,Non-Hispanic/Latino,Black/African American,1,1,1,1,4,1,1,4,5
+2,45,Male,34,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,3
+4,46,Female,27,Non-Hispanic/Latino,Asian,1,1,1,1,4,1,1,1,4
+4,47,Female,30,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,3
+3,48,Male,29,Non-Hispanic/Latino,Asian,1,1,1,1,4,2,,,4
+4,49,Male,25,Do Not Wish to Reply,Asian,1,1,1,1,4,1,1,1,5
+8,50,Male,30,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,5
+8,51,Male,26,Non-Hispanic/Latino,Black/African American,1,1,1,1,4,1,1,2,5
+8,52,Female,30,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,5
+7,53,Male,33,Non-Hispanic/Latino,Asian,1,1,1,1,4,1,1,3,3
+1,54,Male,30,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,3
+1,55,Male,27,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,1,1,2,4
+6,56,Male,30,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,5
+4,57,Female,53,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,5
+7,58,Male,28,Non-Hispanic/Latino,Asian,1,1,1,1,4,1,1,3,3
+1,59,Male,27,Non-Hispanic/Latino,Asian,1,1,1,1,4,2,,,5
+5,60,Male,28,Hispanic/Latino,American Indian/Alaska Native,1,1,1,1,4,1,1,3,4
+2,61,Male,33,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,4
+7,62,Male,31,Non-Hispanic/Latino,White/Caucasian,1,1,1,1,4,2,,,4
+7,63,Male,49,Non-Hispanic/Latino,Asian,1,1,1,1,4,1,1,3,3
