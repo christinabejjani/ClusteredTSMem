@@ -2,7 +2,7 @@
 clear all
 
 expt = 4;
-cluster = 2;
+cluster = 1;
 preswitch = 1;
 
 if expt == 1
@@ -10,36 +10,44 @@ if expt == 1
     if cluster == 1
         filename = 'ClusteredSubs_E1.csv';
         numsubs = 31;
+        titleexp = 'Experiment 1 Clustered';
     elseif cluster == 2
         filename = 'NonClusteredSubs_E1.csv';
         numsubs = 32;
+        titleexp = 'Experiment 1 Nonclustered';
     end
 elseif expt == 2
      totalsubs = 64;
     if cluster == 1
         filename = 'ClusteredSubs_E2.csv';
         numsubs = 33;
+        titleexp = 'Experiment 2 Clustered';
     elseif cluster == 2
         filename = 'NonClusteredSubs_E2.csv';
         numsubs = 31;
+        titleexp = 'Experiment 2 Nonclustered';
     end
 elseif expt == 3
     totalsubs = 58;
     if cluster == 1
         filename = 'ClusteredSubs_E3.csv';
         numsubs = 28;
+        titleexp = 'Experiment 3 Clustered';
     elseif cluster == 2
         filename = 'NonClusteredSubs_E3.csv';
-        numsubs = 30; 
+        numsubs = 30;
+        titleexp = 'Experiment 3 Nonclustered';
     end
 elseif expt == 4
     totalsubs = 65;
     if cluster == 1
         filename = 'ClusteredSubs_E4.csv';
-        numsubs = 31; 
+        numsubs = 31;
+        titleexp = 'Experiment 4 Clustered';
     elseif cluster == 2
         filename = 'NonClusteredSubs_E4.csv';
         numsubs = 34;
+        titleexp = 'Experiment 4 Nonclustered';
     end
 end
 
@@ -279,26 +287,33 @@ for j = 1:length(subcount)
     %could be (Unbiased - Repeat) - (Biased - Repeat) but this is the same
     switchcostRT_uncorr(j) = (meanUnbiased(j) - meanBiased(j));
     switchcostACC_uncorr(j) = (meanUnbiasedACC(j) - meanBiasedACC(j));
-    switchcostSD(j) = stdUnbiased(j) - stdBiased(j);
-    switchcostSDACC(j) = stdUnbiasedACC(j) - stdBiasedACC(j);
 end
 
 %absolute value the switch costs, since direction only indicates the rule
 %dimension things organized around
 switchcostRT = abs(switchcostRT_uncorr);
 switchcostACC = abs(switchcostACC_uncorr);
-switchcostSD = abs(switchcostSD);
-switchcostSDACC = abs(switchcostSDACC);
+
+%don't need to do this when using d-prime as the normalized statistic
+%across individuals (u1 - u2 / sqrt(sigma_1^2 + sigma_2^2)
+%switchcostSD = abs(switchcostSD);
+%switchcostSDACC = abs(switchcostSDACC);
 
 %get rid of the extras that came from running total of totalsubs mturk
 %workers, but not all being assigned to either cluster or nonclustered
 switchcostRT = switchcostRT(~isnan(switchcostRT));
 switchcostACC = switchcostACC(~isnan(switchcostACC));
-switchcostSD = switchcostSD(~isnan(switchcostSD));
-switchcostSDACC = switchcostSDACC(~isnan(switchcostSDACC));
+stdUnbiased = stdUnbiased(~isnan(stdUnbiased));
+stdBiased = stdBiased(~isnan(stdBiased));
+stdUnbiasedACC = stdUnbiasedACC(~isnan(stdUnbiasedACC));
+stdBiasedACC = stdBiasedACC(~isnan(stdBiasedACC));
 
-individualZ_RT = switchcostRT./switchcostSD;
-individualZ_ACC = switchcostACC./switchcostSDACC;
+individuald_RT = switchcostRT./sqrt(0.5*((stdUnbiased.^2)+(stdBiased.^2)));
+individuald_ACC = switchcostACC./sqrt(0.5*((stdUnbiasedACC.^2)+(stdBiasedACC.^2)));
+
+%record all the switch costs for the individuals, so it can be used in the
+%mixed models analysis
+csvwrite([newfile 'switchcosts_Individ.csv'], [individuald_RT, individuald_ACC, sort((str2double(unique(subject))),'ascend')]);
 
 %Make summaries of the data for stats
 mCONTRAST_RT=mean(switchcostRT); %mean contrast
@@ -421,15 +436,11 @@ for j = 1:numsubs
     % after running all permutations, calculate the switch costs
     switchCostRT = abs(unbiasedRT - biasedRT);
     switchCostAcc = abs(unbiasedAcc - biasedAcc);
-    scRTsd = abs(unbiasedSDall - biasedSDall);
-    scACCsd = abs(unbiasedSDallACC - biasedSDallACC);
     
     % concatenating the switch costs for the participant into main outcome
     % variable for the switch cost distributions
     switchCostRT_Dist(:,j) = switchCostRT;
     switchCostAcc_Dist(:,j) = switchCostAcc;
-    SC_SD_Dist(:,j) = scRTsd;
-    SC_SDACC_Dist(:,j) = scACCsd;
     
     clear SubRTlabel SubACClabel tempRT tempAcc rand_RTLabel rand_ACCLabel biasedRT unbiasedRT biasedAcc unbiasedAcc switchCostRT switchCostAcc
 end
@@ -445,6 +456,7 @@ fakesCONTRAST_RT=std(switchCostRT_Dist,[],2); %std contrast
 fakemCONTRAST_ACC=mean(switchCostAcc_Dist,2); %mean contrast
 fakesCONTRAST_ACC=std(switchCostAcc_Dist,[],2); %std contrast
 
+%now compare across all participants within the group with the z-score
 fakezCONTRAST_RT=(fakemCONTRAST_RT./fakesCONTRAST_RT)*sqrt(numsubs); %z-scored contrast
 fakezCONTRAST_ACC=(fakemCONTRAST_ACC./fakesCONTRAST_ACC)*sqrt(numsubs); %z-scored contrast
 teststatisticRT = (zCONTRAST_RT>fakezCONTRAST_RT);
@@ -452,20 +464,20 @@ teststatisticACC = (zCONTRAST_ACC>fakezCONTRAST_ACC);
 
 %individual treats each subject as having their own distribution, with 10k
 %generated fake means and stdevs, to calculate their own z-stats
-individualfakeZ_RT = switchCostRT_Dist./SC_SD_Dist;
-individualfakeZ_ACC = switchCostAcc_Dist./SC_SDACC_Dist;
+individualfaked_RT = switchCostRT_Dist./sqrt(0.5*((unbiasedSDall.^2) +  (biasedSDall.^2)));
+individualfaked_ACC = switchCostAcc_Dist./sqrt(0.5*((unbiasedSDallACC.^2) +  (biasedSDallACC.^2)));
 
 for j = 1:length(clustergrp)
     individdiffRT(:,j) = switchcostRT(j)>switchCostRT_Dist(:,j);
     individdiffACC(:,j) = switchcostACC(j)>switchCostAcc_Dist(:,j);
-    individualdiffRT(:,j) = individualZ_RT(j)>individualfakeZ_RT(:,j);
-    individualdiffACC(:,j) = individualZ_ACC(j)>individualfakeZ_ACC(:,j);
+    individualdiffRT(:,j) = individuald_RT(j)>individualfaked_RT(:,j);
+    individualdiffACC(:,j) = individuald_ACC(j)>individualfaked_ACC(:,j);
 end
 
 csvwrite([newfile 'individdiff_summary.csv'], [sum(individdiffRT,1); sum(individdiffACC,1)]);
 csvwrite([newfile 'individdiff_summary_Z.csv'], [sum(individualdiffRT,1); sum(individualdiffACC,1)]);
 csvwrite([newfile 'switchcosts.csv'], [switchcostRT, switchcostACC]);
-csvwrite([newfile 'individualdifferences.csv'], [individualZ_RT, individualZ_ACC]);
 csvwrite([newfile 'zstats_mainexpt.csv'], [zCONTRAST_RT, zCONTRAST_ACC]);
 csvwrite([newfile 'permutation_all.csv'], [fakezCONTRAST_RT, fakezCONTRAST_ACC, teststatisticRT, teststatisticACC]);
 csvwrite([newfile 'permutation_summary.csv'], [sum(teststatisticRT), sum(teststatisticACC)]);
+
