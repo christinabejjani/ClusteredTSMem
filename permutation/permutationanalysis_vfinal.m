@@ -350,8 +350,10 @@ end
 nperm = 10000;
 switchCostRT_Dist = zeros(nperm,numsubs);
 switchCostAcc_Dist = zeros(nperm,numsubs);
-SC_SD_Dist = zeros(nperm,numsubs);
-SC_SDACC_Dist = zeros(nperm,numsubs);
+SC_SD_Dist_UB = zeros(nperm,numsubs);
+SC_SD_Dist_B = zeros(nperm,numsubs);
+SC_SDACC_Dist_UB = zeros(nperm,numsubs);
+SC_SDACC_Dist_B = zeros(nperm,numsubs);
 
 tic;
 for j = 1:numsubs
@@ -441,6 +443,10 @@ for j = 1:numsubs
     % variable for the switch cost distributions
     switchCostRT_Dist(:,j) = switchCostRT;
     switchCostAcc_Dist(:,j) = switchCostAcc;
+    SC_SD_Dist_UB(:,j) = unbiasedSDall;
+    SC_SD_Dist_B(:,j) = biasedSDall;
+    SC_SDACC_Dist_UB(:,j) = unbiasedSDallACC;
+    SC_SDACC_Dist_B(:,j) = biasedSDallACC;
     
     clear SubRTlabel SubACClabel tempRT tempAcc rand_RTLabel rand_ACCLabel biasedRT unbiasedRT biasedAcc unbiasedAcc switchCostRT switchCostAcc
 end
@@ -464,8 +470,8 @@ teststatisticACC = (zCONTRAST_ACC>fakezCONTRAST_ACC);
 
 %individual treats each subject as having their own distribution, with 10k
 %generated fake means and stdevs, to calculate their own z-stats
-individualfaked_RT = switchCostRT_Dist./sqrt(0.5*((unbiasedSDall.^2) +  (biasedSDall.^2)));
-individualfaked_ACC = switchCostAcc_Dist./sqrt(0.5*((unbiasedSDallACC.^2) +  (biasedSDallACC.^2)));
+individualfaked_RT = switchCostRT_Dist./sqrt(0.5*((SC_SD_Dist_UB.^2) +  (SC_SD_Dist_B.^2)));
+individualfaked_ACC = switchCostAcc_Dist./sqrt(0.5*((SC_SDACC_Dist_UB.^2) +  (SC_SDACC_Dist_B.^2)));
 
 for j = 1:length(clustergrp)
     individdiffRT(:,j) = switchcostRT(j)>switchCostRT_Dist(:,j);
